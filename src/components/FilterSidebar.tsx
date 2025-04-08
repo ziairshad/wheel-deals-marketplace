@@ -114,7 +114,7 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
               <SelectValue placeholder="Any Body Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any</SelectItem>
+              <SelectItem value="any">Any</SelectItem>
               {bodyTypes.map((type) => (
                 <SelectItem key={type} value={type}>
                   {type}
