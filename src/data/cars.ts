@@ -1,4 +1,3 @@
-
 export interface Car {
   id: string;
   make: string;
@@ -262,9 +261,14 @@ export const cars: Car[] = [
   }
 ];
 
-// Helper function to format price with AED currency
+// Helper function to format price with AED currency without decimal places
 export const formatPrice = (price: number): string => {
-  return price.toLocaleString('en-AE', { style: 'currency', currency: 'AED' });
+  return price.toLocaleString('en-AE', { 
+    style: 'currency', 
+    currency: 'AED', 
+    minimumFractionDigits: 0, 
+    maximumFractionDigits: 0 
+  });
 };
 
 // Helper function to format mileage
