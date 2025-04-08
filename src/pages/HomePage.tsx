@@ -1,21 +1,32 @@
 
 import { useState } from "react";
-import { Grid2X2, List } from "lucide-react";
+import { Grid2X2, List, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CarCard from "@/components/CarCard";
 import FilterSidebar from "@/components/FilterSidebar";
 
 import { cars } from "@/data/cars";
-import { FilterOptions, filterCars, initialFilterOptions } from "@/utils/filter-utils";
+import { FilterOptions, filterCars, initialFilterOptions, sortOptions, SortOption } from "@/utils/filter-utils";
 
 const HomePage = () => {
   const [filters, setFilters] = useState<FilterOptions>(initialFilterOptions);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [sortOption, setSortOption] = useState<SortOption>(sortOptions[0]);
   
-  const filteredCars = filterCars(cars, filters);
+  // Get filtered cars
+  let filteredCars = filterCars(cars, filters);
+  
+  // Apply sorting
+  filteredCars = [...filteredCars].sort(sortOption.sortFn);
   
   const handleFilterChange = (newFilters: FilterOptions) => {
     setFilters(newFilters);
@@ -56,9 +67,25 @@ const HomePage = () => {
                   </ToggleGroup>
                 </div>
                 
-                <Button variant="outline" size="sm">
-                  Sort by: Latest
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <ArrowUpDown className="h-3.5 w-3.5" />
+                      <span>Sort: {sortOption.label}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {sortOptions.map((option) => (
+                      <DropdownMenuItem 
+                        key={option.id}
+                        onClick={() => setSortOption(option)}
+                        className={option.id === sortOption.id ? "bg-accent" : ""}
+                      >
+                        {option.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
             

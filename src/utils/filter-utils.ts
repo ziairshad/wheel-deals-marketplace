@@ -3,32 +3,43 @@ import { Car } from "../data/cars";
 
 export type FilterOptions = {
   make: string | null;
+  model: string | null;
   minPrice: number | null;
   maxPrice: number | null;
   minYear: number | null;
   maxYear: number | null;
-  bodyType: string | null;
+  bodyTypes: string[];
   transmission: string | null;
   fuelType: string | null;
   location: string | null;
+  minMileage: number | null;
+  maxMileage: number | null;
 };
 
 export const initialFilterOptions: FilterOptions = {
   make: null,
+  model: null,
   minPrice: null,
   maxPrice: null,
   minYear: null,
   maxYear: null,
-  bodyType: null,
+  bodyTypes: [],
   transmission: null,
   fuelType: null,
-  location: null
+  location: null,
+  minMileage: null,
+  maxMileage: null
 };
 
 export const filterCars = (cars: Car[], filters: FilterOptions): Car[] => {
   return cars.filter(car => {
     // Filter by make
     if (filters.make && car.make !== filters.make) {
+      return false;
+    }
+    
+    // Filter by model
+    if (filters.model && car.model !== filters.model) {
       return false;
     }
     
@@ -53,8 +64,8 @@ export const filterCars = (cars: Car[], filters: FilterOptions): Car[] => {
       return false;
     }
     
-    // Filter by body type
-    if (filters.bodyType && car.bodyType !== filters.bodyType) {
+    // Filter by body types (multiple selection)
+    if (filters.bodyTypes.length > 0 && !filters.bodyTypes.includes(car.bodyType)) {
       return false;
     }
     
@@ -65,6 +76,14 @@ export const filterCars = (cars: Car[], filters: FilterOptions): Car[] => {
     
     // Filter by fuel type
     if (filters.fuelType && car.fuelType !== filters.fuelType) {
+      return false;
+    }
+    
+    // Filter by mileage range
+    if (filters.minMileage && car.mileage < filters.minMileage) {
+      return false;
+    }
+    if (filters.maxMileage && car.mileage > filters.maxMileage) {
       return false;
     }
     
@@ -79,3 +98,53 @@ export const getUniqueValues = <T extends keyof Car>(cars: Car[], property: T): 
   
   return [...new Set(values)].sort();
 };
+
+export const getUniqueModelsByMake = (cars: Car[], make: string | null): string[] => {
+  if (!make) return [];
+  
+  const models = cars
+    .filter(car => car.make === make)
+    .map(car => car.model);
+  
+  return [...new Set(models)].sort();
+};
+
+// Sorting options
+export type SortOption = {
+  id: string;
+  label: string;
+  sortFn: (a: Car, b: Car) => number;
+};
+
+export const sortOptions: SortOption[] = [
+  {
+    id: "latest",
+    label: "Latest",
+    sortFn: (a, b) => new Date(b.listedDate).getTime() - new Date(a.listedDate).getTime()
+  },
+  {
+    id: "price-low-high",
+    label: "Price: Low to High",
+    sortFn: (a, b) => a.price - b.price
+  },
+  {
+    id: "price-high-low",
+    label: "Price: High to Low",
+    sortFn: (a, b) => b.price - a.price
+  },
+  {
+    id: "year-new-old",
+    label: "Year: Newest First",
+    sortFn: (a, b) => b.year - a.year
+  },
+  {
+    id: "year-old-new",
+    label: "Year: Oldest First",
+    sortFn: (a, b) => a.year - b.year
+  },
+  {
+    id: "mileage-low-high",
+    label: "Mileage: Low to High",
+    sortFn: (a, b) => a.mileage - b.mileage
+  }
+];

@@ -1,9 +1,12 @@
+
 import { useState, useEffect } from "react";
 import { Filter } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import BodyTypeSelector from "./BodyTypeSelector";
 import { 
   Select, 
   SelectContent, 
@@ -20,7 +23,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import { Car, emirates } from "@/data/cars";
-import { FilterOptions, getUniqueValues } from "@/utils/filter-utils";
+import { FilterOptions, getUniqueValues, getUniqueModelsByMake } from "@/utils/filter-utils";
 
 interface FilterSidebarProps {
   cars: Car[];
@@ -34,10 +37,16 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
   
   // Get unique values for dropdowns
   const makes = ["Any", ...getUniqueValues(cars, "make")];
-  const bodyTypes = ["Any", ...getUniqueValues(cars, "bodyType")];
+  const models = localFilters.make ? ["Any", ...getUniqueModelsByMake(cars, localFilters.make)] : [];
+  const bodyTypes = getUniqueValues(cars, "bodyType");
   const transmissions = ["Any", ...getUniqueValues(cars, "transmission")];
   const fuelTypes = ["Any", ...getUniqueValues(cars, "fuelType")];
   const locations = ["Any", ...emirates];
+  
+  // Get min/max mileage for the range slider
+  const mileages = cars.map(car => car.mileage);
+  const minAvailableMileage = Math.min(...mileages);
+  const maxAvailableMileage = Math.max(...mileages);
   
   // Update when props change
   useEffect(() => {
@@ -45,7 +54,20 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
   }, [filters]);
   
   const handleChange = (key: keyof FilterOptions, value: any) => {
-    setLocalFilters(prev => ({ ...prev, [key]: value }));
+    // If make changes, reset model
+    if (key === 'make' && localFilters.make !== value) {
+      setLocalFilters(prev => ({ 
+        ...prev, 
+        [key]: value,
+        model: null 
+      }));
+    } else {
+      setLocalFilters(prev => ({ ...prev, [key]: value }));
+    }
+  };
+  
+  const handleBodyTypeChange = (bodyTypes: string[]) => {
+    setLocalFilters(prev => ({ ...prev, bodyTypes }));
   };
   
   const handleApplyFilters = () => {
@@ -55,28 +77,40 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
   const handleClearFilters = () => {
     const clearedFilters = {
       make: null,
+      model: null,
       minPrice: null,
       maxPrice: null,
       minYear: null,
       maxYear: null,
-      bodyType: null,
+      bodyTypes: [],
       transmission: null,
       fuelType: null,
-      location: null
+      location: null,
+      minMileage: null,
+      maxMileage: null
     };
     
     setLocalFilters(clearedFilters);
     onFilterChange(clearedFilters);
   };
   
+  const formatMileage = (value: number) => `${value.toLocaleString()} km`;
+  
   const renderFilterControls = () => (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold mb-4">Filter Vehicles</h2>
         
-        <Accordion type="multiple" defaultValue={["make", "price", "year", "location"]}>
+        {/* Body Type Selector (outside accordion) */}
+        <BodyTypeSelector 
+          bodyTypes={bodyTypes} 
+          selectedTypes={localFilters.bodyTypes} 
+          onChange={handleBodyTypeChange}
+        />
+        
+        <Accordion type="multiple" defaultValue={["make", "price", "year", "location", "mileage"]}>
           <AccordionItem value="make">
-            <AccordionTrigger>Make</AccordionTrigger>
+            <AccordionTrigger>Make & Model</AccordionTrigger>
             <AccordionContent>
               <div className="space-y-4 pt-2">
                 <div>
@@ -97,6 +131,27 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
                     </SelectContent>
                   </Select>
                 </div>
+                
+                {localFilters.make && (
+                  <div>
+                    <Label htmlFor="model">Select Model</Label>
+                    <Select 
+                      value={localFilters.model || "Any"} 
+                      onValueChange={(value) => handleChange("model", value === "Any" ? null : value)}
+                    >
+                      <SelectTrigger id="model">
+                        <SelectValue placeholder="Any" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {models.map((model) => (
+                          <SelectItem key={model} value={model}>
+                            {model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
             </AccordionContent>
           </AccordionItem>
@@ -193,26 +248,28 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
             </AccordionContent>
           </AccordionItem>
           
-          <AccordionItem value="bodyType">
-            <AccordionTrigger>Body Type</AccordionTrigger>
+          <AccordionItem value="mileage">
+            <AccordionTrigger>Mileage Range</AccordionTrigger>
             <AccordionContent>
-              <div className="pt-2">
-                <Label htmlFor="bodyType">Body Type</Label>
-                <Select 
-                  value={localFilters.bodyType || "Any"} 
-                  onValueChange={(value) => handleChange("bodyType", value === "Any" ? null : value)}
-                >
-                  <SelectTrigger id="bodyType">
-                    <SelectValue placeholder="Any" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {bodyTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-6 pt-4 px-1">
+                <Slider
+                  defaultValue={[minAvailableMileage, maxAvailableMileage]}
+                  min={minAvailableMileage}
+                  max={maxAvailableMileage}
+                  step={1000}
+                  value={[
+                    localFilters.minMileage || minAvailableMileage,
+                    localFilters.maxMileage || maxAvailableMileage
+                  ]}
+                  onValueChange={(values) => {
+                    handleChange("minMileage", values[0]);
+                    handleChange("maxMileage", values[1]);
+                  }}
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <div>{formatMileage(localFilters.minMileage || minAvailableMileage)}</div>
+                  <div>{formatMileage(localFilters.maxMileage || maxAvailableMileage)}</div>
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
@@ -293,12 +350,12 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
           <span>Filters</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+      <SheetContent side="left" className="w-[300px] sm:w-[400px] overflow-y-auto">
         {renderFilterControls()}
       </SheetContent>
     </Sheet>
   ) : (
-    <aside className="w-full md:w-64 lg:w-72 sticky top-24 h-fit border rounded-lg p-4 bg-white">
+    <aside className="w-full md:w-64 lg:w-72 sticky top-24 h-fit border rounded-lg p-4 bg-white overflow-y-auto max-h-[calc(100vh-180px)]">
       {renderFilterControls()}
     </aside>
   );
