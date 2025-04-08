@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import BodyTypeSelector from "./BodyTypeSelector";
 import { 
   Select, 
   SelectContent, 
@@ -75,7 +74,7 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
   };
   
   const handleClearFilters = () => {
-    const clearedFilters = {
+    const clearedFilters: FilterOptions = {
       make: null,
       model: null,
       minPrice: null,
@@ -87,7 +86,8 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
       fuelType: null,
       location: null,
       minMileage: null,
-      maxMileage: null
+      maxMileage: null,
+      search: localFilters.search // Preserve the search value when clearing
     };
     
     setLocalFilters(clearedFilters);
@@ -102,11 +102,27 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
         <h2 className="text-lg font-semibold mb-4">Filter Vehicles</h2>
         
         {/* Body Type Selector (outside accordion) */}
-        <BodyTypeSelector 
-          bodyTypes={bodyTypes} 
-          selectedTypes={localFilters.bodyTypes} 
-          onChange={handleBodyTypeChange}
-        />
+        <div className="mb-4">
+          <Label htmlFor="bodyType">Body Type</Label>
+          <Select 
+            value={localFilters.bodyTypes.length === 1 ? localFilters.bodyTypes[0] : ""}
+            onValueChange={(value) => {
+              handleBodyTypeChange(value ? [value] : []);
+            }}
+          >
+            <SelectTrigger id="bodyType">
+              <SelectValue placeholder="Any Body Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Any</SelectItem>
+              {bodyTypes.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         
         <Accordion type="multiple" defaultValue={["make", "price", "year", "location", "mileage"]}>
           <AccordionItem value="make">
