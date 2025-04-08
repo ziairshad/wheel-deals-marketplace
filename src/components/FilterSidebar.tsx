@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Filter } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -20,7 +19,7 @@ import {
 } from "@/components/ui/accordion";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-import { Car } from "@/data/cars";
+import { Car, emirates } from "@/data/cars";
 import { FilterOptions, getUniqueValues } from "@/utils/filter-utils";
 
 interface FilterSidebarProps {
@@ -38,6 +37,7 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
   const bodyTypes = ["Any", ...getUniqueValues(cars, "bodyType")];
   const transmissions = ["Any", ...getUniqueValues(cars, "transmission")];
   const fuelTypes = ["Any", ...getUniqueValues(cars, "fuelType")];
+  const locations = ["Any", ...emirates];
   
   // Update when props change
   useEffect(() => {
@@ -61,7 +61,8 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
       maxYear: null,
       bodyType: null,
       transmission: null,
-      fuelType: null
+      fuelType: null,
+      location: null
     };
     
     setLocalFilters(clearedFilters);
@@ -73,7 +74,7 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
       <div>
         <h2 className="text-lg font-semibold mb-4">Filter Vehicles</h2>
         
-        <Accordion type="multiple" defaultValue={["make", "price", "year"]}>
+        <Accordion type="multiple" defaultValue={["make", "price", "year", "location"]}>
           <AccordionItem value="make">
             <AccordionTrigger>Make</AccordionTrigger>
             <AccordionContent>
@@ -100,12 +101,36 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
             </AccordionContent>
           </AccordionItem>
           
+          <AccordionItem value="location">
+            <AccordionTrigger>Location</AccordionTrigger>
+            <AccordionContent>
+              <div className="pt-2">
+                <Label htmlFor="location">Emirate</Label>
+                <Select 
+                  value={localFilters.location || "Any"} 
+                  onValueChange={(value) => handleChange("location", value === "Any" ? null : value)}
+                >
+                  <SelectTrigger id="location">
+                    <SelectValue placeholder="Any" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {locations.map((location) => (
+                      <SelectItem key={location} value={location}>
+                        {location}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
           <AccordionItem value="price">
             <AccordionTrigger>Price Range</AccordionTrigger>
             <AccordionContent>
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <div>
-                  <Label htmlFor="minPrice">Min Price ($)</Label>
+                  <Label htmlFor="minPrice">Min Price (AED)</Label>
                   <Input
                     id="minPrice"
                     type="number"
@@ -118,7 +143,7 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
                   />
                 </div>
                 <div>
-                  <Label htmlFor="maxPrice">Max Price ($)</Label>
+                  <Label htmlFor="maxPrice">Max Price (AED)</Label>
                   <Input
                     id="maxPrice"
                     type="number"

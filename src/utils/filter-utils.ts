@@ -10,6 +10,7 @@ export type FilterOptions = {
   bodyType: string | null;
   transmission: string | null;
   fuelType: string | null;
+  location: string | null;
 };
 
 export const initialFilterOptions: FilterOptions = {
@@ -20,13 +21,19 @@ export const initialFilterOptions: FilterOptions = {
   maxYear: null,
   bodyType: null,
   transmission: null,
-  fuelType: null
+  fuelType: null,
+  location: null
 };
 
 export const filterCars = (cars: Car[], filters: FilterOptions): Car[] => {
   return cars.filter(car => {
     // Filter by make
     if (filters.make && car.make !== filters.make) {
+      return false;
+    }
+    
+    // Filter by location
+    if (filters.location && car.location !== filters.location) {
       return false;
     }
     

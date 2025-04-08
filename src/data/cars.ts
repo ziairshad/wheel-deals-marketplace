@@ -24,17 +24,30 @@ export interface Car {
   listedDate: string;
 }
 
+// Define valid emirates
+export type Emirate = "Abu Dhabi" | "Dubai" | "Sharjah" | "Ajman" | "Umm Al Quwain" | "Ras Al Khaimah" | "Fujairah";
+
+export const emirates: Emirate[] = [
+  "Abu Dhabi",
+  "Dubai", 
+  "Sharjah", 
+  "Ajman", 
+  "Umm Al Quwain", 
+  "Ras Al Khaimah", 
+  "Fujairah"
+];
+
 export const cars: Car[] = [
   {
     id: "1",
     make: "BMW",
     model: "3 Series",
     year: 2021,
-    price: 42999,
+    price: 157000,
     mileage: 15430,
     fuelType: "Gasoline",
     transmission: "Automatic",
-    location: "San Francisco, CA",
+    location: "Dubai",
     exteriorColor: "Alpine White",
     interiorColor: "Black",
     vin: "WBA5R7C08LFH38394",
@@ -67,11 +80,11 @@ export const cars: Car[] = [
     make: "Tesla",
     model: "Model 3",
     year: 2022,
-    price: 48900,
+    price: 179500,
     mileage: 8750,
     fuelType: "Electric",
     transmission: "Automatic",
-    location: "Austin, TX",
+    location: "Abu Dhabi",
     exteriorColor: "Midnight Silver",
     interiorColor: "White",
     vin: "5YJ3E1EA4NF123456",
@@ -104,11 +117,11 @@ export const cars: Car[] = [
     make: "Toyota",
     model: "RAV4",
     year: 2020,
-    price: 32450,
+    price: 119000,
     mileage: 28500,
     fuelType: "Hybrid",
     transmission: "Automatic",
-    location: "Denver, CO",
+    location: "Sharjah",
     exteriorColor: "Blueprint",
     interiorColor: "Gray",
     vin: "JTMW1RFV4LD012345",
@@ -141,11 +154,11 @@ export const cars: Car[] = [
     make: "Ford",
     model: "F-150",
     year: 2019,
-    price: 39750,
+    price: 145900,
     mileage: 35200,
     fuelType: "Gasoline",
     transmission: "Automatic",
-    location: "Dallas, TX",
+    location: "Ras Al Khaimah",
     exteriorColor: "Magnetic Gray",
     interiorColor: "Black",
     vin: "1FTEW1E53KFA12345",
@@ -178,11 +191,11 @@ export const cars: Car[] = [
     make: "Honda",
     model: "Civic",
     year: 2022,
-    price: 26990,
+    price: 98900,
     mileage: 12650,
     fuelType: "Gasoline",
     transmission: "Automatic",
-    location: "Seattle, WA",
+    location: "Ajman",
     exteriorColor: "Sonic Gray",
     interiorColor: "Black",
     vin: "19XFL1H75NE012345",
@@ -215,11 +228,11 @@ export const cars: Car[] = [
     make: "Audi",
     model: "Q5",
     year: 2020,
-    price: 44750,
+    price: 164500,
     mileage: 24180,
     fuelType: "Gasoline",
     transmission: "Automatic",
-    location: "Chicago, IL",
+    location: "Fujairah",
     exteriorColor: "Mythos Black",
     interiorColor: "Rock Gray",
     vin: "WA1BNAFY7L2012345",
@@ -249,12 +262,12 @@ export const cars: Car[] = [
   }
 ];
 
-// Helper function to format price with commas
+// Helper function to format price with AED currency
 export const formatPrice = (price: number): string => {
-  return "$" + price.toLocaleString('en-US');
+  return price.toLocaleString('en-AE', { style: 'currency', currency: 'AED' });
 };
 
 // Helper function to format mileage
 export const formatMileage = (mileage: number): string => {
-  return mileage.toLocaleString('en-US') + " mi";
+  return mileage.toLocaleString('en-US') + " km";
 };
