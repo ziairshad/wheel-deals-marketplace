@@ -32,21 +32,23 @@ const HomePage = () => {
     const searchParams = new URLSearchParams(location.search);
     const searchQuery = searchParams.get("search");
     
-    if (searchQuery) {
-      setFilters(prev => ({ ...prev, search: searchQuery }));
-    } else if (filters.search) {
-      // Update URL when search is cleared
-      setFilters(prev => ({ ...prev, search: null }));
-    }
+    // Update filters with search query from URL or clear it
+    setFilters(prev => ({ ...prev, search: searchQuery || null }));
   }, [location.search]);
   
   const handleFilterChange = (newFilters: FilterOptions) => {
     const updatedFilters = { ...newFilters };
     
-    // If search was cleared in filters, update URL to remove search parameter
-    if (filters.search && !newFilters.search) {
+    // If search was updated in filters, update URL
+    if (filters.search !== newFilters.search) {
       const searchParams = new URLSearchParams(location.search);
-      searchParams.delete("search");
+      
+      if (newFilters.search) {
+        searchParams.set("search", newFilters.search);
+      } else {
+        searchParams.delete("search");
+      }
+      
       navigate({ search: searchParams.toString() }, { replace: true });
     }
     
