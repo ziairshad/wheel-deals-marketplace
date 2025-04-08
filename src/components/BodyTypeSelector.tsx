@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Car, Truck, PlaneTakeoff, Bicycle } from "lucide-react";
+import { Car, Truck, PlaneTakeoff, Bike } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BodyTypeSelectorProps {
@@ -46,7 +46,7 @@ export const BodyTypeSelector = ({
     ...missingBodyTypes.map(type => ({
       value: type,
       label: type,
-      icon: Bicycle // Default icon for unknown body types
+      icon: Bike // Changed from Bicycle to Bike which exists in lucide-react
     }))
   ];
 
