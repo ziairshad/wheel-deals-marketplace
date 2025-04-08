@@ -97,20 +97,20 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
   const formatMileage = (value: number) => `${value.toLocaleString()} km`;
   
   const renderFilterControls = () => (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold mb-4">Filter Vehicles</h2>
+        <h2 className="text-lg font-semibold mb-3">Filter Vehicles</h2>
         
         {/* Body Type Selector (outside accordion) */}
-        <div className="mb-4">
-          <Label htmlFor="bodyType">Body Type</Label>
+        <div className="mb-3">
+          <Label htmlFor="bodyType" className="mb-1 block text-sm">Body Type</Label>
           <Select 
             value={localFilters.bodyTypes.length === 1 ? localFilters.bodyTypes[0] : ""}
             onValueChange={(value) => {
               handleBodyTypeChange(value ? [value] : []);
             }}
           >
-            <SelectTrigger id="bodyType">
+            <SelectTrigger id="bodyType" className="h-8">
               <SelectValue placeholder="Any Body Type" />
             </SelectTrigger>
             <SelectContent>
@@ -124,18 +124,18 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
           </Select>
         </div>
         
-        <Accordion type="multiple" defaultValue={["make", "price", "year", "location", "mileage"]}>
-          <AccordionItem value="make">
-            <AccordionTrigger>Make & Model</AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-4 pt-2">
+        <Accordion type="multiple" defaultValue={["make", "price", "year", "location", "mileage"]} className="space-y-2">
+          <AccordionItem value="make" className="border-b-0">
+            <AccordionTrigger className="py-2 text-sm font-medium hover:no-underline">Make & Model</AccordionTrigger>
+            <AccordionContent className="pt-1 pb-2">
+              <div className="space-y-2">
                 <div>
-                  <Label htmlFor="make">Select Make</Label>
+                  <Label htmlFor="make" className="mb-1 block text-sm">Make</Label>
                   <Select 
                     value={localFilters.make || "Any"} 
                     onValueChange={(value) => handleChange("make", value === "Any" ? null : value)}
                   >
-                    <SelectTrigger id="make">
+                    <SelectTrigger id="make" className="h-8">
                       <SelectValue placeholder="Any" />
                     </SelectTrigger>
                     <SelectContent>
@@ -150,12 +150,12 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
                 
                 {localFilters.make && (
                   <div>
-                    <Label htmlFor="model">Select Model</Label>
+                    <Label htmlFor="model" className="mb-1 block text-sm">Model</Label>
                     <Select 
                       value={localFilters.model || "Any"} 
                       onValueChange={(value) => handleChange("model", value === "Any" ? null : value)}
                     >
-                      <SelectTrigger id="model">
+                      <SelectTrigger id="model" className="h-8">
                         <SelectValue placeholder="Any" />
                       </SelectTrigger>
                       <SelectContent>
@@ -172,16 +172,16 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
             </AccordionContent>
           </AccordionItem>
           
-          <AccordionItem value="location">
-            <AccordionTrigger>Location</AccordionTrigger>
-            <AccordionContent>
-              <div className="pt-2">
-                <Label htmlFor="location">Emirate</Label>
+          <AccordionItem value="location" className="border-b-0">
+            <AccordionTrigger className="py-2 text-sm font-medium hover:no-underline">Location</AccordionTrigger>
+            <AccordionContent className="pt-1 pb-2">
+              <div>
+                <Label htmlFor="location" className="mb-1 block text-sm">Emirate</Label>
                 <Select 
                   value={localFilters.location || "Any"} 
                   onValueChange={(value) => handleChange("location", value === "Any" ? null : value)}
                 >
-                  <SelectTrigger id="location">
+                  <SelectTrigger id="location" className="h-8">
                     <SelectValue placeholder="Any" />
                   </SelectTrigger>
                   <SelectContent>
@@ -196,16 +196,17 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="price">
-            <AccordionTrigger>Price Range</AccordionTrigger>
-            <AccordionContent>
-              <div className="grid grid-cols-2 gap-4 pt-2">
+          <AccordionItem value="price" className="border-b-0">
+            <AccordionTrigger className="py-2 text-sm font-medium hover:no-underline">Price Range</AccordionTrigger>
+            <AccordionContent className="pt-1 pb-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label htmlFor="minPrice">Min Price (AED)</Label>
+                  <Label htmlFor="minPrice" className="mb-1 block text-sm">Min Price (AED)</Label>
                   <Input
                     id="minPrice"
                     type="number"
                     placeholder="Min"
+                    className="h-8"
                     value={localFilters.minPrice || ""}
                     onChange={(e) => {
                       const value = e.target.value ? parseInt(e.target.value) : null;
@@ -214,11 +215,12 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
                   />
                 </div>
                 <div>
-                  <Label htmlFor="maxPrice">Max Price (AED)</Label>
+                  <Label htmlFor="maxPrice" className="mb-1 block text-sm">Max Price (AED)</Label>
                   <Input
                     id="maxPrice"
                     type="number"
                     placeholder="Max"
+                    className="h-8"
                     value={localFilters.maxPrice || ""}
                     onChange={(e) => {
                       const value = e.target.value ? parseInt(e.target.value) : null;
@@ -230,16 +232,17 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
             </AccordionContent>
           </AccordionItem>
           
-          <AccordionItem value="year">
-            <AccordionTrigger>Year Range</AccordionTrigger>
-            <AccordionContent>
-              <div className="grid grid-cols-2 gap-4 pt-2">
+          <AccordionItem value="year" className="border-b-0">
+            <AccordionTrigger className="py-2 text-sm font-medium hover:no-underline">Year Range</AccordionTrigger>
+            <AccordionContent className="pt-1 pb-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label htmlFor="minYear">Min Year</Label>
+                  <Label htmlFor="minYear" className="mb-1 block text-sm">Min Year</Label>
                   <Input
                     id="minYear"
                     type="number"
                     placeholder="Min"
+                    className="h-8"
                     value={localFilters.minYear || ""}
                     onChange={(e) => {
                       const value = e.target.value ? parseInt(e.target.value) : null;
@@ -248,11 +251,12 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
                   />
                 </div>
                 <div>
-                  <Label htmlFor="maxYear">Max Year</Label>
+                  <Label htmlFor="maxYear" className="mb-1 block text-sm">Max Year</Label>
                   <Input
                     id="maxYear"
                     type="number"
                     placeholder="Max"
+                    className="h-8"
                     value={localFilters.maxYear || ""}
                     onChange={(e) => {
                       const value = e.target.value ? parseInt(e.target.value) : null;
@@ -264,10 +268,10 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
             </AccordionContent>
           </AccordionItem>
           
-          <AccordionItem value="mileage">
-            <AccordionTrigger>Mileage Range</AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-6 pt-4 px-1">
+          <AccordionItem value="mileage" className="border-b-0">
+            <AccordionTrigger className="py-2 text-sm font-medium hover:no-underline">Mileage Range</AccordionTrigger>
+            <AccordionContent className="pt-1 pb-2">
+              <div className="space-y-4 pt-2 px-1">
                 <Slider
                   defaultValue={[minAvailableMileage, maxAvailableMileage]}
                   min={minAvailableMileage}
@@ -290,16 +294,16 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
             </AccordionContent>
           </AccordionItem>
           
-          <AccordionItem value="transmission">
-            <AccordionTrigger>Transmission</AccordionTrigger>
-            <AccordionContent>
-              <div className="pt-2">
-                <Label htmlFor="transmission">Transmission Type</Label>
+          <AccordionItem value="transmission" className="border-b-0">
+            <AccordionTrigger className="py-2 text-sm font-medium hover:no-underline">Transmission</AccordionTrigger>
+            <AccordionContent className="pt-1 pb-2">
+              <div>
+                <Label htmlFor="transmission" className="mb-1 block text-sm">Transmission Type</Label>
                 <Select 
                   value={localFilters.transmission || "Any"} 
                   onValueChange={(value) => handleChange("transmission", value === "Any" ? null : value)}
                 >
-                  <SelectTrigger id="transmission">
+                  <SelectTrigger id="transmission" className="h-8">
                     <SelectValue placeholder="Any" />
                   </SelectTrigger>
                   <SelectContent>
@@ -314,16 +318,16 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
             </AccordionContent>
           </AccordionItem>
           
-          <AccordionItem value="fuelType">
-            <AccordionTrigger>Fuel Type</AccordionTrigger>
-            <AccordionContent>
-              <div className="pt-2">
-                <Label htmlFor="fuelType">Fuel Type</Label>
+          <AccordionItem value="fuelType" className="border-b-0">
+            <AccordionTrigger className="py-2 text-sm font-medium hover:no-underline">Fuel Type</AccordionTrigger>
+            <AccordionContent className="pt-1 pb-2">
+              <div>
+                <Label htmlFor="fuelType" className="mb-1 block text-sm">Fuel Type</Label>
                 <Select 
                   value={localFilters.fuelType || "Any"} 
                   onValueChange={(value) => handleChange("fuelType", value === "Any" ? null : value)}
                 >
-                  <SelectTrigger id="fuelType">
+                  <SelectTrigger id="fuelType" className="h-8">
                     <SelectValue placeholder="Any" />
                   </SelectTrigger>
                   <SelectContent>
@@ -340,16 +344,16 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
         </Accordion>
       </div>
       
-      <div className="flex flex-col space-y-2">
+      <div className="flex flex-col space-y-2 mt-2">
         <Button 
-          className="w-full" 
+          className="w-full h-8 text-sm" 
           onClick={handleApplyFilters}
         >
           Apply Filters
         </Button>
         <Button 
           variant="outline" 
-          className="w-full" 
+          className="w-full h-8 text-sm" 
           onClick={handleClearFilters}
         >
           Clear Filters
@@ -361,7 +365,7 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
   return isMobile ? (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" className="mb-4 flex items-center gap-2">
+        <Button variant="outline" className="mb-4 flex items-center gap-2 h-8 text-sm">
           <Filter className="h-4 w-4" />
           <span>Filters</span>
         </Button>
@@ -371,7 +375,7 @@ const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) =>
       </SheetContent>
     </Sheet>
   ) : (
-    <aside className="w-full md:w-64 lg:w-72 sticky top-24 h-fit border rounded-lg p-4 bg-white overflow-y-auto max-h-[calc(100vh-180px)]">
+    <aside className="w-full md:w-64 lg:w-72 sticky top-24 h-fit border rounded-lg p-3 bg-white overflow-y-auto max-h-[calc(100vh-180px)]">
       {renderFilterControls()}
     </aside>
   );

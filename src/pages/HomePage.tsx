@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FilterSidebar from "@/components/FilterSidebar";
@@ -23,6 +23,7 @@ import {
 
 const HomePage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<FilterOptions>(initialFilterOptions);
   const [activeSort, setActiveSort] = useState<string>("latest");
   
@@ -34,13 +35,22 @@ const HomePage = () => {
     if (searchQuery) {
       setFilters(prev => ({ ...prev, search: searchQuery }));
     } else if (filters.search) {
+      // Update URL when search is cleared
       setFilters(prev => ({ ...prev, search: null }));
     }
   }, [location.search]);
   
   const handleFilterChange = (newFilters: FilterOptions) => {
-    // Preserve the search term when other filters change
-    setFilters({ ...newFilters, search: filters.search });
+    const updatedFilters = { ...newFilters };
+    
+    // If search was cleared in filters, update URL to remove search parameter
+    if (filters.search && !newFilters.search) {
+      const searchParams = new URLSearchParams(location.search);
+      searchParams.delete("search");
+      navigate({ search: searchParams.toString() }, { replace: true });
+    }
+    
+    setFilters(updatedFilters);
   };
   
   const handleSortChange = (value: string) => {
