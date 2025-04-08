@@ -1,19 +1,34 @@
 
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Car, Home, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Update local search state when URL changes
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const searchParam = searchParams.get("search");
+    setSearchQuery(searchParam || "");
+  }, [location.search]);
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const searchParams = new URLSearchParams(location.search);
+    
     if (searchQuery.trim()) {
-      navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+      searchParams.set("search", searchQuery.trim());
+    } else {
+      searchParams.delete("search");
     }
+    
+    navigate(`/?${searchParams.toString()}`);
   };
   
   return (
