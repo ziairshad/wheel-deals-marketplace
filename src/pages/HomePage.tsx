@@ -1,122 +1,130 @@
 
-import { useState } from "react";
-import { Grid2X2, List, ArrowUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import CarCard from "@/components/CarCard";
 import FilterSidebar from "@/components/FilterSidebar";
-
+import CarCard from "@/components/CarCard";
 import { cars } from "@/data/cars";
-import { FilterOptions, filterCars, initialFilterOptions, sortOptions, SortOption } from "@/utils/filter-utils";
+import { 
+  FilterOptions, 
+  filterCars, 
+  initialFilterOptions, 
+  sortOptions, 
+  SortOption 
+} from "@/utils/filter-utils";
+import { 
+  Select, 
+  SelectContent,
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
 const HomePage = () => {
+  const location = useLocation();
   const [filters, setFilters] = useState<FilterOptions>(initialFilterOptions);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [sortOption, setSortOption] = useState<SortOption>(sortOptions[0]);
+  const [activeSort, setActiveSort] = useState<string>("latest");
   
-  // Get filtered cars
-  let filteredCars = filterCars(cars, filters);
-  
-  // Apply sorting
-  filteredCars = [...filteredCars].sort(sortOption.sortFn);
+  // Parse search query from URL when component mounts or URL changes
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const searchQuery = searchParams.get("search");
+    
+    if (searchQuery) {
+      setFilters(prev => ({ ...prev, search: searchQuery }));
+    } else if (filters.search) {
+      setFilters(prev => ({ ...prev, search: null }));
+    }
+  }, [location.search]);
   
   const handleFilterChange = (newFilters: FilterOptions) => {
-    setFilters(newFilters);
+    // Preserve the search term when other filters change
+    setFilters({ ...newFilters, search: filters.search });
   };
+  
+  const handleSortChange = (value: string) => {
+    setActiveSort(value);
+  };
+  
+  // Apply filters and sorting
+  const filteredCars = filterCars(cars, filters);
+  const sortedCars = [...filteredCars].sort(
+    sortOptions.find(option => option.id === activeSort)?.sortFn || 
+    sortOptions[0].sortFn
+  );
+  
+  const activeSortOption = sortOptions.find(option => option.id === activeSort);
   
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-1 container py-8">
+      <div className="container py-6 flex-1">
+        {/* Search results heading */}
+        {filters.search && (
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold">
+              Search results for "{filters.search}"
+            </h1>
+            <p className="text-muted-foreground">
+              Found {filteredCars.length} cars matching your search
+            </p>
+          </div>
+        )}
+        
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Filter sidebar */}
           <FilterSidebar 
-            cars={cars} 
-            filters={filters} 
-            onFilterChange={handleFilterChange} 
+            cars={cars}
+            filters={filters}
+            onFilterChange={handleFilterChange}
           />
           
-          {/* Car listings */}
           <div className="flex-1">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold">
-                {filteredCars.length} {filteredCars.length === 1 ? 'Car' : 'Cars'} Available
-              </h1>
+              <div className="text-muted-foreground">
+                {sortedCars.length} {sortedCars.length === 1 ? 'car' : 'cars'} found
+              </div>
               
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">View:</span>
-                  <ToggleGroup type="single" value={viewMode} onValueChange={(value) => {
-                    if (value) setViewMode(value as "grid" | "list");
-                  }}>
-                    <ToggleGroupItem value="grid" aria-label="Grid view">
-                      <Grid2X2 className="h-4 w-4" />
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="list" aria-label="List view">
-                      <List className="h-4 w-4" />
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
-                      <ArrowUpDown className="h-3.5 w-3.5" />
-                      <span>Sort: {sortOption.label}</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">Sort by:</span>
+                <Select
+                  value={activeSort}
+                  onValueChange={handleSortChange}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue>
+                      {activeSortOption?.label || "Latest"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
                     {sortOptions.map((option) => (
-                      <DropdownMenuItem 
-                        key={option.id}
-                        onClick={() => setSortOption(option)}
-                        className={option.id === sortOption.id ? "bg-accent" : ""}
-                      >
+                      <SelectItem key={option.id} value={option.id}>
                         {option.label}
-                      </DropdownMenuItem>
+                      </SelectItem>
                     ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             
-            {filteredCars.length === 0 ? (
-              <div className="text-center py-16 animate-fade-in">
-                <h2 className="text-xl font-semibold text-muted-foreground">No cars match your filters</h2>
-                <p className="mt-2 text-muted-foreground">Try adjusting your search criteria</p>
-                <Button 
-                  className="mt-4" 
-                  variant="outline" 
-                  onClick={() => setFilters(initialFilterOptions)}
-                >
-                  Clear All Filters
-                </Button>
+            {sortedCars.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sortedCars.map((car) => (
+                  <CarCard key={car.id} car={car} />
+                ))}
               </div>
             ) : (
-              <div className={`grid ${
-                viewMode === "grid" 
-                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" 
-                  : "grid-cols-1 gap-4"
-              }`}>
-                {filteredCars.map((car) => (
-                  <div key={car.id} className="animate-fade-in">
-                    <CarCard car={car} />
-                  </div>
-                ))}
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <h3 className="text-xl font-semibold mb-2">No cars found</h3>
+                <p className="text-muted-foreground mb-4">
+                  Try adjusting your filters or search criteria
+                </p>
               </div>
             )}
           </div>
         </div>
-      </main>
+      </div>
       
       <Footer />
     </div>

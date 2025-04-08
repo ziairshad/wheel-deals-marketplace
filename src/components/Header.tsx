@@ -1,10 +1,21 @@
 
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Car, Home, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const Header = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+  
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur-sm">
       <div className="container flex h-16 items-center justify-between">
@@ -14,14 +25,16 @@ const Header = () => {
         </Link>
         
         <div className="flex-1 mx-8 max-w-xl">
-          <div className="relative">
+          <form onSubmit={handleSearch} className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search makes, models, or keywords..."
               className="w-full bg-background pl-8 pr-4"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-          </div>
+          </form>
         </div>
         
         <nav className="flex items-center gap-4">
@@ -30,9 +43,11 @@ const Header = () => {
             <span>Home</span>
           </Link>
           
-          <Button className="bg-car-blue hover:bg-blue-700">
-            Sell Your Car
-          </Button>
+          <Link to="/sell">
+            <Button className="bg-car-blue hover:bg-blue-700">
+              Sell Your Car
+            </Button>
+          </Link>
         </nav>
       </div>
     </header>

@@ -14,6 +14,7 @@ export type FilterOptions = {
   location: string | null;
   minMileage: number | null;
   maxMileage: number | null;
+  search: string | null;
 };
 
 export const initialFilterOptions: FilterOptions = {
@@ -28,11 +29,21 @@ export const initialFilterOptions: FilterOptions = {
   fuelType: null,
   location: null,
   minMileage: null,
-  maxMileage: null
+  maxMileage: null,
+  search: null
 };
 
 export const filterCars = (cars: Car[], filters: FilterOptions): Car[] => {
   return cars.filter(car => {
+    // Search filter
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      const searchableText = `${car.make} ${car.model} ${car.description}`.toLowerCase();
+      if (!searchableText.includes(searchTerm)) {
+        return false;
+      }
+    }
+    
     // Filter by make
     if (filters.make && car.make !== filters.make) {
       return false;
