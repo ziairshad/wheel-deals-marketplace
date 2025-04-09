@@ -22,7 +22,7 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 268 77% 64%; /* Corresponds to #8B5CF6 (Vivid Purple) */
+    --accent: 217 89% 46%; /* Corresponds to #2563eb (Blue) */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -63,7 +63,7 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 268 77% 64%;
+    --accent: 217 89% 46%; /* Corresponds to #2563eb (Blue) */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;

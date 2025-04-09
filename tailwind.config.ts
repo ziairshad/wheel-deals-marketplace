@@ -1,15 +1,15 @@
 import type { Config } from "tailwindcss";
 
 export default {
-	darkMode: ["class"],
-	content: [
+  darkMode: ["class"],
+  content: [
 		"./pages/**/*.{ts,tsx}",
 		"./components/**/*.{ts,tsx}",
 		"./app/**/*.{ts,tsx}",
 		"./src/**/*.{ts,tsx}",
 	],
-	prefix: "",
-	theme: {
+  prefix: "",
+  theme: {
 		container: {
 			center: true,
 			padding: '2rem',
@@ -17,8 +17,8 @@ export default {
 				'2xl': '1400px'
 			}
 		},
-		extend: {
-			colors: {
+    extend: {
+      colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
@@ -40,10 +40,10 @@ export default {
 					DEFAULT: 'hsl(var(--muted))',
 					foreground: 'hsl(var(--muted-foreground))'
 				},
-				accent: {
-					DEFAULT: 'hsl(var(--accent))', // Now explicitly matching primary color
-					foreground: 'hsl(var(--accent-foreground))'
-				},
+        accent: {
+          DEFAULT: 'hsl(var(--accent))', // Blue color
+          foreground: 'hsl(var(--accent-foreground))'
+        },
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
 					foreground: 'hsl(var(--popover-foreground))'
@@ -67,7 +67,20 @@ export default {
 				'car-silver': '#9ca3af',
 				'car-red': '#ef4444',
 				'car-light': '#f9fafb',
-				// Optional: Add some additional violet-related colors if desired
+        // Optional: Add the specific blue color to the palette
+        blue: {
+          DEFAULT: '#2563eb',
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a'
+        },
 				violet: {
 					50: '#f5f3ff',
 					100: '#E5DEFF',
@@ -76,29 +89,21 @@ export default {
 					600: '#7E69AB', // Secondary Purple
 					700: '#6E59A5'  // Tertiary Purple
 				}
-			},
-			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
-			},
-			keyframes: {
-				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
-				},
-				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
-				},
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)'
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
 				'fade-in': {
 					'0%': {
 						opacity: '0',
@@ -109,13 +114,13 @@ export default {
 						transform: 'translateY(0)'
 					}
 				},
-			},
-			animation: {
-				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out',
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
 				'fade-in': 'fade-in 0.4s ease-out',
-			}
-		}
-	},
-	plugins: [require("tailwindcss-animate")],
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
 } satisfies Config;
