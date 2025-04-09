@@ -3,6 +3,7 @@ import React from "react";
 import { formatPrice } from "@/data/cars";
 import { Badge } from "@/components/ui/badge";
 import { CarListingRow } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 interface CarHeaderProps {
   car: CarListingRow;
@@ -10,6 +11,9 @@ interface CarHeaderProps {
 
 const CarHeader = ({ car }: CarHeaderProps) => {
   const carTitle = `${car.year} ${car.make} ${car.model}`;
+  
+  // Format the date to a more readable format
+  const formattedDate = format(new Date(car.created_at), "MMMM d, yyyy");
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -24,7 +28,7 @@ const CarHeader = ({ car }: CarHeaderProps) => {
             </Badge>
           )}
           <span className="text-sm text-muted-foreground ml-2">
-            Listed on {new Date(car.created_at).toLocaleDateString()}
+            Listed on {formattedDate}
           </span>
         </div>
       </div>
