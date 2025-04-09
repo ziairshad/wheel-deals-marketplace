@@ -17,8 +17,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
           <Routes>
             <Route path="/" element={<Index />}>
               <Route index element={<HomePage />} />
@@ -43,9 +43,9 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
-        </BrowserRouter>
-        <Toaster />
-      </AuthProvider>
+          <Toaster />
+        </AuthProvider>
+      </BrowserRouter>
     </ThemeProvider>
   );
 }
