@@ -31,6 +31,8 @@ export async function fetchCarById(carId: string) {
 
 export async function submitCarListing(formData: CarFormData, userId: string, images: File[], editId?: string, existingImages: string[] = []) {
   try {
+    console.log("Submitting car listing:", { formData, userId, imagesCount: images.length, existingImagesCount: existingImages.length, editId });
+    
     // Prepare the car listing data
     const carListingData = {
       user_id: userId,
@@ -83,7 +85,7 @@ export async function submitCarListing(formData: CarFormData, userId: string, im
 
     // Track all image URLs (both existing and new)
     let allImageUrls = [...existingImages];
-
+    
     // Only process images if we have new ones to upload
     if (images.length > 0) {
       // Upload images to Supabase Storage
@@ -141,16 +143,17 @@ export async function submitCarListing(formData: CarFormData, userId: string, im
       }
     }
 
-    // Update car listing with all image URLs (existing + new)
-    if (allImageUrls.length > 0) {
-      const { error: updateError } = await supabase
-        .from('car_listings')
-        .update({ images: allImageUrls })
-        .eq('id', carId);
+    // Update car listing with all image URLs (existing + new), even if it's an empty array
+    // This is the key fix - we update the images field regardless of whether there are images or not
+    console.log("Updating car with images:", { carId, imageUrlsCount: allImageUrls.length });
+    
+    const { error: updateError } = await supabase
+      .from('car_listings')
+      .update({ images: allImageUrls })
+      .eq('id', carId);
 
-      if (updateError) {
-        console.error("Error updating car listing with images:", updateError);
-      }
+    if (updateError) {
+      console.error("Error updating car listing with images:", updateError);
     }
 
     return { success: true, carId };
