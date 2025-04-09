@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import LandingPage from "./pages/LandingPage";
 import HomePage from "./pages/HomePage";
 import CarDetailsPage from "./pages/CarDetailsPage";
 import SellYourCarPage from "./pages/SellYourCarPage";
@@ -27,8 +26,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/browse" element={<HomePage />} />
+              <Route path="/" element={<HomePage />} />
               <Route path="/car/:id" element={<CarDetailsPage />} />
               <Route 
                 path="/sell" 

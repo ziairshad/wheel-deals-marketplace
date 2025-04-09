@@ -2,7 +2,7 @@
 import { Navigate } from "react-router-dom";
 
 const Index = () => {
-  // Redirect to LandingPage
+  // Redirect to HomePage
   return <Navigate to="/" replace />;
 };
 
