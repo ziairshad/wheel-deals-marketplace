@@ -1,11 +1,9 @@
 
 import React, { useState, useEffect } from "react";
-import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Accordion,
   AccordionContent,
@@ -27,6 +25,7 @@ import {
 } from "@/utils/filter-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { DualRangeSlider } from "@/components/ui/dual-range-slider";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 interface FilterSidebarProps {
   filters: FilterOptions;
@@ -195,46 +194,37 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     return `$${value.toLocaleString()}`;
   };
 
+  // Convert the arrays to format required by SearchableSelect
+  const makeOptions = makes.map(make => ({ label: make, value: make }));
+  const modelOptions = models.map(model => ({ label: model, value: model }));
+
   return (
     <div className="h-full overflow-auto space-y-4 pr-2">
       <Accordion type="multiple" defaultValue={["make", "model", "price", "year"]}>
         <AccordionItem value="make">
           <AccordionTrigger className="py-3">Make</AccordionTrigger>
           <AccordionContent>
-            <Select onValueChange={handleMakeChange} value={filters.make || ""}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select make" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[200px]">
-                {makes.map((make) => (
-                  <SelectItem key={make} value={make}>
-                    {make}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              options={makeOptions}
+              value={filters.make}
+              onChange={handleMakeChange}
+              placeholder="Select make"
+              searchPlaceholder="Search makes..."
+            />
           </AccordionContent>
         </AccordionItem>
 
         <AccordionItem value="model">
           <AccordionTrigger className="py-3">Model</AccordionTrigger>
           <AccordionContent>
-            <Select
-              onValueChange={handleModelChange}
-              value={filters.model || ""}
+            <SearchableSelect
+              options={modelOptions}
+              value={filters.model}
+              onChange={handleModelChange}
+              placeholder="Select model"
+              searchPlaceholder="Search models..."
               disabled={!filters.make}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select model" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[200px]">
-                {models.map((model) => (
-                  <SelectItem key={model} value={model}>
-                    {model}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            />
           </AccordionContent>
         </AccordionItem>
 
