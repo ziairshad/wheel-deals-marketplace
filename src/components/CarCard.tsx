@@ -23,6 +23,9 @@ const CarCard = ({ car }: CarCardProps) => {
   const location = car.location;
   const status = car.status;
   
+  // Get regional specs if available
+  const regionalSpecs = isCarListingRow ? car.regional_specs : car.regionalSpecs;
+  
   // Handle images differently based on car type
   const images = isCarListingRow 
     ? (car.images || []) 
@@ -67,6 +70,12 @@ const CarCard = ({ car }: CarCardProps) => {
           <span>{formatMileage(mileage)}</span>
           <span className="text-xs">•</span>
           <span className="truncate">{location}</span>
+          {regionalSpecs && (
+            <>
+              <span className="text-xs">•</span>
+              <span className="truncate">{regionalSpecs}</span>
+            </>
+          )}
         </div>
       </div>
     </Link>

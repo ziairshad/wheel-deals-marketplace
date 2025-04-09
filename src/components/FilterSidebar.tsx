@@ -30,6 +30,17 @@ interface FilterSidebarProps {
   onFilterChange: (filters: FilterOptions) => void;
 }
 
+const regionalSpecsOptions = [
+  "GCC Specs", 
+  "American Specs", 
+  "Canadian Specs", 
+  "European Specs", 
+  "Japanese Specs", 
+  "Korean Specs", 
+  "Chinese Specs", 
+  "Other"
+];
+
 const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
   const isMobile = useIsMobile();
   const [localFilters, setLocalFilters] = useState<FilterOptions>(filters);
@@ -122,7 +133,8 @@ const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
       location: null,
       minMileage: null,
       maxMileage: null,
-      search: localFilters.search // Preserve the search value when clearing
+      search: localFilters.search, // Preserve the search value when clearing
+      regionalSpecs: null
     };
     
     setLocalFilters(clearedFilters);
@@ -159,7 +171,7 @@ const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
           </Select>
         </div>
         
-        <Accordion type="multiple" defaultValue={["make", "price", "year", "location", "mileage"]} className="space-y-2">
+        <Accordion type="multiple" defaultValue={["make", "price", "year", "location", "mileage", "specs"]} className="space-y-2">
           <AccordionItem value="make" className="border-b-0">
             <AccordionTrigger className="py-2 text-sm font-medium hover:no-underline">Make & Model</AccordionTrigger>
             <AccordionContent className="pt-1 pb-2">
@@ -203,6 +215,29 @@ const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
                     </Select>
                   </div>
                 )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+          
+          <AccordionItem value="specs" className="border-b-0">
+            <AccordionTrigger className="py-2 text-sm font-medium hover:no-underline">Regional Specs</AccordionTrigger>
+            <AccordionContent className="pt-1 pb-2">
+              <div>
+                <Label htmlFor="regionalSpecs" className="mb-1 block text-sm">Regional Specs</Label>
+                <Select 
+                  value={localFilters.regionalSpecs || "Any"} 
+                  onValueChange={(value) => handleChange("regionalSpecs", value === "Any" ? null : value)}
+                >
+                  <SelectTrigger id="regionalSpecs" className="h-8">
+                    <SelectValue placeholder="Any" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Any">Any</SelectItem>
+                    {regionalSpecsOptions.map((spec) => (
+                      <SelectItem key={spec} value={spec}>{spec}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </AccordionContent>
           </AccordionItem>

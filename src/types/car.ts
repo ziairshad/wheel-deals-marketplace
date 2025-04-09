@@ -15,6 +15,7 @@ export interface CarFormData {
   contactPhone: string;
   contactEmail: string;
   vin: string;
+  regionalSpecs: string;
 }
 
 export interface CarListing {
@@ -38,6 +39,7 @@ export interface CarListing {
   contact_email?: string;
   vin?: string;
   user_id?: string;
+  regional_specs?: string;
 }
 
 // Helper function to convert from API format to form format
@@ -58,5 +60,6 @@ export function convertToFormData(carListing: CarListing): CarFormData {
     contactPhone: carListing.contact_phone || '',
     contactEmail: carListing.contact_email || '',
     vin: carListing.vin || '',
+    regionalSpecs: carListing.regional_specs || '',
   };
 }

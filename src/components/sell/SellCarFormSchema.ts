@@ -18,4 +18,5 @@ export const sellCarFormSchema = z.object({
   contactPhone: z.string().min(7, "Valid phone number required"),
   contactEmail: z.string().email("Invalid email address"),
   vin: z.string().min(17, "VIN must be at least 17 characters").max(17, "VIN must be exactly 17 characters"),
+  regionalSpecs: z.string().min(1, "Regional specs is required"),
 });

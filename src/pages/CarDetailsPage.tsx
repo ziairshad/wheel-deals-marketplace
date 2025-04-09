@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -13,7 +14,8 @@ import {
   Mail, 
   User,
   Check,
-  Copy
+  Copy,
+  Globe
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -192,6 +194,17 @@ const CarDetailsPage = () => {
                 <span className="text-lg font-medium">{car.transmission || 'Not specified'}</span>
               </div>
             </div>
+            
+            {/* Regional Specs */}
+            {car.regional_specs && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center text-muted-foreground mb-1">
+                  <Globe className="h-4 w-4 mr-1" />
+                  <span className="text-xs">Regional Specs</span>
+                </div>
+                <span className="text-lg font-medium">{car.regional_specs}</span>
+              </div>
+            )}
 
             {/* VIN Number */}
             {car.vin && (

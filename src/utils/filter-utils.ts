@@ -19,6 +19,7 @@ export type FilterOptions = {
   minMileage: number | null;
   maxMileage: number | null;
   search: string | null;
+  regionalSpecs: string | null;
 };
 
 export const initialFilterOptions: FilterOptions = {
@@ -34,7 +35,8 @@ export const initialFilterOptions: FilterOptions = {
   location: null,
   minMileage: null,
   maxMileage: null,
-  search: null
+  search: null,
+  regionalSpecs: null
 };
 
 // Helper function to handle differences between Car and CarListingRow
@@ -45,6 +47,7 @@ const getCarProperty = (car: UnifiedCar, property: string): any => {
       case 'fuelType': return car.fuel_type;
       case 'bodyType': return car.body_type;
       case 'exteriorColor': return car.exterior_color;
+      case 'regionalSpecs': return car.regional_specs;
       case 'features': return [];
       default:
         // For properties that have the same name in both types
@@ -119,6 +122,14 @@ export const filterCars = (cars: UnifiedCar[], filters: FilterOptions): UnifiedC
     if (filters.fuelType) {
       const fuelType = 'user_id' in car ? car.fuel_type : car.fuelType;
       if (fuelType !== filters.fuelType) {
+        return false;
+      }
+    }
+    
+    // Filter by regional specs
+    if (filters.regionalSpecs) {
+      const regionalSpecs = 'user_id' in car ? car.regional_specs : car.regionalSpecs;
+      if (regionalSpecs !== filters.regionalSpecs) {
         return false;
       }
     }

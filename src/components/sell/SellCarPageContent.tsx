@@ -46,6 +46,7 @@ const SellCarPageContent: React.FC<SellCarPageContentProps> = ({ isEditMode = fa
       contactPhone: "",
       contactEmail: "",
       vin: "",
+      regionalSpecs: "",
     },
   });
 

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import { Info } from "lucide-react";
@@ -28,6 +29,16 @@ const bodyTypes = [
 
 const transmissions = ["Automatic", "Manual"];
 const fuelTypes = ["Petrol", "Diesel", "Hybrid", "Electric"];
+const regionalSpecs = [
+  "GCC Specs", 
+  "American Specs", 
+  "Canadian Specs", 
+  "European Specs", 
+  "Japanese Specs", 
+  "Korean Specs", 
+  "Chinese Specs", 
+  "Other"
+];
 
 interface VehicleInfoFormProps {
   images: File[];
@@ -198,6 +209,29 @@ const VehicleInfoForm: React.FC<VehicleInfoFormProps> = ({
                 <SelectContent>
                   {fuelTypes.map(type => (
                     <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="regionalSpecs"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Regional Specs *</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select regional specs" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {regionalSpecs.map(spec => (
+                    <SelectItem key={spec} value={spec}>{spec}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
