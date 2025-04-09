@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, Pencil, Trash2 } from "lucide-react";
@@ -8,6 +7,7 @@ import { Car } from "lucide-react";
 import { CarListingRow } from "@/integrations/supabase/client";
 import { formatPrice, formatMileage } from "@/data/cars";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 import {
   Tooltip,
   TooltipContent,
@@ -58,6 +58,11 @@ const ListingCard = ({ listing, onStatusChange, onDeleteClick }: ListingCardProp
     onStatusChange(id, "sold");
   };
 
+  // Format the date
+  const formattedDate = listing.created_at 
+    ? format(new Date(listing.created_at), "d/MMM/yyyy") 
+    : null;
+
   return (
     <div className="border rounded-lg overflow-hidden shadow-sm">
       <div className="relative aspect-video overflow-hidden">
@@ -105,6 +110,12 @@ const ListingCard = ({ listing, onStatusChange, onDeleteClick }: ListingCardProp
           )}
           <span className="truncate">{listing.location}</span>
         </div>
+        
+        {formattedDate && (
+          <div className="mt-1 text-xs text-muted-foreground">
+            Listed: {formattedDate}
+          </div>
+        )}
         
         <div className="mt-3 flex items-center justify-between">
           <Button 

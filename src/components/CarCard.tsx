@@ -4,6 +4,7 @@ import { Car, formatPrice, formatMileage } from "@/data/cars";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { CarListingRow } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 interface CarCardProps {
   car: Car | CarListingRow;
@@ -30,6 +31,11 @@ const CarCard = ({ car }: CarCardProps) => {
   const images = isCarListingRow 
     ? (car.images || []) 
     : car.images;
+  
+  // Format the created date if it exists
+  const createdAt = isCarListingRow && car.created_at 
+    ? format(new Date(car.created_at), "d/MMM/yyyy")
+    : null;
   
   // Use a placeholder if no images
   const imageUrl = images && images.length > 0 
@@ -77,6 +83,12 @@ const CarCard = ({ car }: CarCardProps) => {
           )}
           <span className="truncate">{location}</span>
         </div>
+        
+        {createdAt && (
+          <div className="mt-1 text-xs text-muted-foreground">
+            Listed: {createdAt}
+          </div>
+        )}
       </div>
     </Link>
   );
