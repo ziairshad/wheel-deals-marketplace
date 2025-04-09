@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -195,8 +194,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   };
 
   // Convert the arrays to format required by SearchableSelect
-  const makeOptions = makes.map(make => ({ label: make, value: make }));
-  const modelOptions = models.map(model => ({ label: model, value: model }));
+  const makeOptions = makes?.map(make => ({ label: make, value: make })) || [];
+  const modelOptions = models?.map(model => ({ label: model, value: model })) || [];
 
   return (
     <div className="h-full overflow-auto space-y-4 pr-2">
