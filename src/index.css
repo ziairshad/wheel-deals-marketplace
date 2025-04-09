@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 268 77% 64%; /* Corresponds to #8B5CF6 (Vivid Purple) */
+    --primary: 217 89% 46%; /* Changed from 268 77% 64% (vivid purple) to 217 89% 46% (bright blue) */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 220 14% 65%;
@@ -45,6 +45,7 @@
   }
 
   .dark {
+    /* Similar change for dark mode */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
@@ -54,7 +55,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 268 77% 64%;
+    --primary: 217 89% 46%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;

@@ -10,13 +10,13 @@ export default {
 	],
   prefix: "",
   theme: {
-		container: {
-			center: true,
-			padding: '2rem',
-			screens: {
-				'2xl': '1400px'
-			}
-		},
+    container: {
+      center: true,
+      padding: '2rem',
+      screens: {
+        '2xl': '1400px'
+      }
+    },
     extend: {
       colors: {
 				border: 'hsl(var(--border))',
@@ -25,7 +25,7 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))', 
+					DEFAULT: 'hsl(var(--primary))', // Changed from vivid purple to bright blue
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
@@ -82,13 +82,13 @@ export default {
           900: '#1e3a8a'
         },
 				violet: {
-					50: '#f5f3ff',
-					100: '#E5DEFF',
-					200: '#D6BCFA',
-					500: '#8B5CF6', // Vivid Purple
-					600: '#7E69AB', // Secondary Purple
-					700: '#6E59A5'  // Tertiary Purple
-				}
+          50: '#f5f3ff',
+          100: '#E5DEFF',
+          200: '#D6BCFA',
+          500: '#2563eb', // Changed from #8B5CF6 to #2563eb
+          600: '#2563eb', // Updated to match
+          700: '#2563eb'  // Updated to match
+        }
       },
       borderRadius: {
         lg: 'var(--radius)',
