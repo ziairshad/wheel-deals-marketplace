@@ -12,12 +12,14 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const { user, signOut } = useAuth();
+  const isMobile = useIsMobile();
   
   // Update local search state when URL changes
   useEffect(() => {
@@ -29,37 +31,43 @@ const Header = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Only proceed with search if we're not already on the home page
+    // or if we are on the home page but with different search params
     const searchParams = new URLSearchParams(location.search);
+    const currentSearch = searchParams.get("search");
     
-    if (searchQuery.trim()) {
-      searchParams.set("search", searchQuery.trim());
-    } else {
-      searchParams.delete("search");
+    if (searchQuery.trim() === currentSearch && location.pathname === "/") {
+      return; // No need to navigate if search is the same and we're on homepage
     }
     
-    // Force a navigation even if the URL appears the same
-    const searchString = searchParams.toString();
+    // Create a new URLSearchParams object for the search
+    const newSearchParams = new URLSearchParams();
+    
+    if (searchQuery.trim()) {
+      newSearchParams.set("search", searchQuery.trim());
+    }
+    
+    // Construct the target URL
+    const searchString = newSearchParams.toString();
     const targetUrl = searchString ? `/?${searchString}` : '/';
     
-    // Using replace to avoid building up history stack with search operations
-    navigate(targetUrl, { replace: true });
+    // Navigate to home with search parameter
+    navigate(targetUrl);
   };
   
-  // Handle input change and clear search immediately if empty
+  // Handle input change and trigger search if field is cleared
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setSearchQuery(newValue);
     
     // If the field is cleared, immediately update the URL
-    if (newValue === "" && searchQuery !== "") {
-      const searchParams = new URLSearchParams(location.search);
-      searchParams.delete("search");
-      navigate(`/?${searchParams.toString()}`, { replace: true });
+    if (newValue === "" && searchQuery !== "" && location.pathname === "/") {
+      navigate("/", { replace: true });
     }
   };
   
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 w-full border-b bg-background backdrop-blur-sm">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <Car className="h-6 w-6 text-car-blue" />
@@ -80,16 +88,18 @@ const Header = () => {
         </div>
         
         <nav className="flex items-center gap-4">
-          <Link to="/" className="flex items-center gap-1.5 text-sm font-medium">
-            <Home className="h-4 w-4" />
-            <span>Home</span>
-          </Link>
+          {!isMobile && (
+            <Link to="/" className="flex items-center gap-1.5 text-sm font-medium">
+              <Home className="h-4 w-4" />
+              <span>Home</span>
+            </Link>
+          )}
           
           {user ? (
             <>
               <Link to="/sell">
                 <Button className="bg-car-blue hover:bg-blue-700">
-                  Sell Your Car
+                  {isMobile ? "Sell" : "Sell Your Car"}
                 </Button>
               </Link>
               
@@ -108,7 +118,7 @@ const Header = () => {
                     <ClipboardList className="mr-2 h-4 w-4" />
                     <span>My Listings</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => signOut()}>
+                  <DropdownMenuItem onClick={signOut}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sign Out</span>
                   </DropdownMenuItem>

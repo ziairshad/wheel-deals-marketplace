@@ -30,6 +30,15 @@ const HomePage = () => {
     setIsFilterOpen(!isFilterOpen);
   };
 
+  // Update filters when search parameter changes
+  useEffect(() => {
+    const searchQuery = searchParams.get("search");
+    setFilters(prevFilters => ({
+      ...prevFilters,
+      search: searchQuery || null
+    }));
+  }, [searchParams]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
