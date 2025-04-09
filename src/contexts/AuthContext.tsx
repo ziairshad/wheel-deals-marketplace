@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -111,6 +112,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName: string, phoneNumber: string) => {
     try {
+      // Check if email is already registered using signInWithOtp
+      const { error: emailCheckError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false // Only check if email exists, don't create a magic link
+        }
+      });
+      
+      // If no error, email doesn't exist. If error is "Email not confirmed", it exists
+      if (!emailCheckError || emailCheckError.message.includes("Email not confirmed")) {
+        toast.error("This email is already registered. Please use a different email address.");
+        throw new Error("Email already in use");
+      }
+
       // Check if phone number already exists in profiles
       const { data: existingUserWithPhone, error: phoneCheckError } = await supabase
         .from('profiles')
