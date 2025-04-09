@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, MoreVertical } from "lucide-react";
+import { Check, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Car } from "lucide-react";
@@ -87,39 +87,52 @@ const ListingCard = ({ listing, onStatusChange, onDeleteClick }: ListingCardProp
             View Details
           </Button>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate(`/edit/${listing.id}`)}>
-                Edit
-              </DropdownMenuItem>
-              
-              {listing.status !== "sold" && (
-                <DropdownMenuItem 
-                  onClick={() => onStatusChange(listing.id, "sold")}
-                  className="text-green-600"
-                >
-                  <Check className="h-4 w-4 mr-2" />
-                  Mark as Sold
-                </DropdownMenuItem>
-              )}
-              
-              <DropdownMenuItem 
-                className="text-red-600"
-                onClick={() => onDeleteClick(listing.id)}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+              onClick={() => navigate(`/edit/${listing.id}`)}
+              title="Edit listing"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-50"
+              onClick={() => onDeleteClick(listing.id)}
+              title="Delete listing"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+            
+            {listing.status !== "sold" && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">                  
+                  {listing.status !== "sold" && (
+                    <DropdownMenuItem 
+                      onClick={() => onStatusChange(listing.id, "sold")}
+                      className="text-green-600"
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      Mark as Sold
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
       </div>
     </div>
