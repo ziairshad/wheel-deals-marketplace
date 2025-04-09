@@ -50,3 +50,180 @@ export const fetchCarById = async (id: string) => {
   
   return data as CarListingRow;
 };
+
+// Helper function to add demo car listings
+export const addDemoCarListings = async (userId: string) => {
+  const demoListings = [
+    {
+      make: "Toyota",
+      model: "Camry",
+      year: 2019,
+      price: 85000,
+      mileage: 45000,
+      body_type: "Sedan",
+      transmission: "Automatic",
+      fuel_type: "Petrol",
+      exterior_color: "White",
+      location: "Dubai",
+      description: "Well-maintained Toyota Camry with excellent fuel economy and smooth ride. Perfect family car.",
+      status: "available",
+      user_id: userId,
+      images: ["https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&auto=format&fit=crop"]
+    },
+    {
+      make: "Honda",
+      model: "CR-V",
+      year: 2020,
+      price: 110000,
+      mileage: 32000,
+      body_type: "SUV",
+      transmission: "Automatic",
+      fuel_type: "Petrol",
+      exterior_color: "Silver",
+      location: "Abu Dhabi",
+      description: "Spacious Honda CR-V with all the latest features. Perfect for family trips and daily commute.",
+      status: "available",
+      user_id: userId,
+      images: ["https://images.unsplash.com/photo-1568844293986-ca3c5aea413f?w=800&auto=format&fit=crop"]
+    },
+    {
+      make: "BMW",
+      model: "3 Series",
+      year: 2021,
+      price: 195000,
+      mileage: 15000,
+      body_type: "Sedan",
+      transmission: "Automatic",
+      fuel_type: "Petrol",
+      exterior_color: "Black",
+      location: "Sharjah",
+      description: "Luxury BMW 3 Series with premium features and powerful engine. Sporty and comfortable.",
+      status: "available",
+      user_id: userId,
+      images: ["https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&auto=format&fit=crop"]
+    },
+    {
+      make: "Mercedes-Benz",
+      model: "GLC",
+      year: 2022,
+      price: 240000,
+      mileage: 8000,
+      body_type: "SUV",
+      transmission: "Automatic",
+      fuel_type: "Diesel",
+      exterior_color: "Gray",
+      location: "Dubai",
+      description: "Elegant Mercedes-Benz GLC with cutting-edge technology and refined interior. Excellent condition.",
+      status: "available",
+      user_id: userId,
+      images: ["https://images.unsplash.com/photo-1606664608504-14281d34ee36?w=800&auto=format&fit=crop"]
+    },
+    {
+      make: "Audi",
+      model: "A4",
+      year: 2020,
+      price: 170000,
+      mileage: 25000,
+      body_type: "Sedan",
+      transmission: "Automatic",
+      fuel_type: "Petrol",
+      exterior_color: "Blue",
+      location: "Ajman",
+      description: "Sophisticated Audi A4 with premium interior and smooth driving experience. Well maintained.",
+      status: "available",
+      user_id: userId,
+      images: ["https://images.unsplash.com/photo-1540066019607-e5f69323a8dc?w=800&auto=format&fit=crop"]
+    },
+    {
+      make: "Ford",
+      model: "Mustang",
+      year: 2018,
+      price: 145000,
+      mileage: 40000,
+      body_type: "Coupe",
+      transmission: "Manual",
+      fuel_type: "Petrol",
+      exterior_color: "Red",
+      location: "Ras Al Khaimah",
+      description: "Classic Ford Mustang with powerful V8 engine. Thrilling driving experience guaranteed.",
+      status: "available",
+      user_id: userId,
+      images: ["https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?w=800&auto=format&fit=crop"]
+    },
+    {
+      make: "Nissan",
+      model: "Pathfinder",
+      year: 2019,
+      price: 120000,
+      mileage: 38000,
+      body_type: "SUV",
+      transmission: "Automatic",
+      fuel_type: "Petrol",
+      exterior_color: "Brown",
+      location: "Fujairah",
+      description: "Rugged Nissan Pathfinder with ample space for family adventures. Great off-road capability.",
+      status: "available",
+      user_id: userId,
+      images: ["https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop"]
+    },
+    {
+      make: "Kia",
+      model: "Sportage",
+      year: 2021,
+      price: 95000,
+      mileage: 18000,
+      body_type: "SUV",
+      transmission: "Automatic",
+      fuel_type: "Hybrid",
+      exterior_color: "Green",
+      location: "Umm Al Quwain",
+      description: "Modern Kia Sportage with fuel-efficient hybrid engine. Packed with safety features.",
+      status: "available",
+      user_id: userId,
+      images: ["https://images.unsplash.com/photo-1607853554306-b1f99b5500d7?w=800&auto=format&fit=crop"]
+    },
+    {
+      make: "Hyundai",
+      model: "Tucson",
+      year: 2020,
+      price: 88000,
+      mileage: 29000,
+      body_type: "SUV",
+      transmission: "Automatic",
+      fuel_type: "Petrol",
+      exterior_color: "Silver",
+      location: "Abu Dhabi",
+      description: "Reliable Hyundai Tucson with comfortable interior and smooth ride. Great value for money.",
+      status: "available",
+      user_id: userId,
+      images: ["https://images.unsplash.com/photo-1601929862217-f1bf94503333?w=800&auto=format&fit=crop"]
+    },
+    {
+      make: "Tesla",
+      model: "Model 3",
+      year: 2022,
+      price: 210000,
+      mileage: 5000,
+      body_type: "Sedan",
+      transmission: "Automatic",
+      fuel_type: "Electric",
+      exterior_color: "White",
+      location: "Dubai",
+      description: "Cutting-edge Tesla Model 3 with long range battery and autopilot features. Zero emissions.",
+      status: "available",
+      user_id: userId,
+      images: ["https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop"]
+    }
+  ];
+
+  const { data, error } = await supabase
+    .from('car_listings')
+    .insert(demoListings);
+
+  if (error) {
+    console.error("Error adding demo listings:", error);
+    throw new Error('Failed to add demo car listings');
+  }
+
+  return { success: true };
+};

@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Car, ChevronLeft, AlertCircle } from "lucide-react";
+import { Car, ChevronLeft, AlertCircle, Plus } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice, formatMileage } from "@/data/cars";
 import { cn } from "@/lib/utils";
-import { CarListingRow } from "@/integrations/supabase/client";
+import { CarListingRow, supabase, addDemoCarListings } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { fetchMyListings } from "@/services/sellCarService";
 
@@ -21,6 +21,26 @@ const MyListingsPage = () => {
   const [listings, setListings] = useState<CarListingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [addingDemoListings, setAddingDemoListings] = useState(false);
+
+  const getListings = async () => {
+    try {
+      setLoading(true);
+      
+      const listingsData = await fetchMyListings(user?.id || '');
+      setListings(listingsData);
+    } catch (err) {
+      console.error("Error fetching listings:", err);
+      setError("Failed to load your listings. Please try again later.");
+      toast({
+        title: "Error",
+        description: "There was a problem loading your listings.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -28,27 +48,35 @@ const MyListingsPage = () => {
       return;
     }
 
-    const getListings = async () => {
-      try {
-        setLoading(true);
-        
-        const listingsData = await fetchMyListings(user.id);
-        setListings(listingsData);
-      } catch (err) {
-        console.error("Error fetching listings:", err);
-        setError("Failed to load your listings. Please try again later.");
-        toast({
-          title: "Error",
-          description: "There was a problem loading your listings.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
     getListings();
   }, [user, navigate, toast]);
+
+  const handleAddDemoListings = async () => {
+    if (!user) return;
+    
+    try {
+      setAddingDemoListings(true);
+      await addDemoCarListings(user.id);
+      
+      toast({
+        title: "Success",
+        description: "10 demo car listings have been added to your account.",
+        variant: "default"
+      });
+      
+      // Refresh listings
+      await getListings();
+    } catch (error) {
+      console.error("Error adding demo listings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add demo listings. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setAddingDemoListings(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -78,18 +106,29 @@ const MyListingsPage = () => {
           </Link>
         </div>
         
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div className="flex items-center">
             <Car className="h-8 w-8 text-car-blue mr-3" />
             <h1 className="text-3xl font-bold">My Listings</h1>
           </div>
           
-          <Button 
-            onClick={() => navigate("/sell")}
-            className="bg-car-blue hover:bg-blue-700"
-          >
-            Add New Listing
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              onClick={() => navigate("/sell")}
+              className="bg-car-blue hover:bg-blue-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Listing
+            </Button>
+            
+            <Button 
+              variant="outline"
+              onClick={handleAddDemoListings}
+              disabled={addingDemoListings}
+            >
+              {addingDemoListings ? "Adding..." : "Add 10 Demo Listings"}
+            </Button>
+          </div>
         </div>
         
         <Separator className="mb-8" />
@@ -108,12 +147,21 @@ const MyListingsPage = () => {
             <Car className="h-12 w-12 text-gray-400 mx-auto mb-3" />
             <h3 className="text-lg font-medium mb-2">No listings yet</h3>
             <p className="text-muted-foreground mb-6">You haven't created any car listings yet.</p>
-            <Button 
-              onClick={() => navigate("/sell")}
-              className="bg-car-blue hover:bg-blue-700"
-            >
-              Create Your First Listing
-            </Button>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button 
+                onClick={() => navigate("/sell")}
+                className="bg-car-blue hover:bg-blue-700"
+              >
+                Create Your First Listing
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={handleAddDemoListings}
+                disabled={addingDemoListings}
+              >
+                {addingDemoListings ? "Adding..." : "Add Demo Listings"}
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

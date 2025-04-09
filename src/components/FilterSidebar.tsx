@@ -22,7 +22,8 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import { emirates } from "@/data/cars";
-import { FilterOptions } from "@/utils/filter-utils";
+import { FilterOptions, UnifiedCar, getUniqueValues, getUniqueModelsByMake } from "@/utils/filter-utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FilterSidebarProps {
   filters: FilterOptions;
@@ -32,40 +33,54 @@ interface FilterSidebarProps {
 const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
   const isMobile = useIsMobile();
   const [localFilters, setLocalFilters] = useState<FilterOptions>(filters);
+  const [availableCars, setAvailableCars] = useState<UnifiedCar[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  // Define static values for dropdowns since we no longer derive them from cars prop
-  const makes = ["Any", "Toyota", "Honda", "BMW", "Mercedes-Benz", "Audi", "Ford", "Chevrolet", "Nissan", "Hyundai", "Kia"];
-  const bodyTypes = ["Sedan", "SUV", "Coupe", "Hatchback", "Convertible", "Truck", "Van"];
-  const transmissions = ["Any", "Automatic", "Manual"];
-  const fuelTypes = ["Any", "Petrol", "Diesel", "Hybrid", "Electric"];
-  const locations = ["Any", ...emirates];
-  
-  // Default mileage values
-  const minAvailableMileage = 0;
-  const maxAvailableMileage = 200000;
-  
-  // Get models based on make
-  const getModelsByMake = (make: string | null) => {
-    if (!make || make === "Any") return ["Any"];
-    
-    // Basic mapping of makes to models
-    const modelMap: Record<string, string[]> = {
-      "Toyota": ["Any", "Camry", "Corolla", "RAV4", "Land Cruiser", "Prado"],
-      "Honda": ["Any", "Civic", "Accord", "CR-V", "Pilot"],
-      "BMW": ["Any", "3 Series", "5 Series", "X3", "X5", "X7"],
-      "Mercedes-Benz": ["Any", "C-Class", "E-Class", "S-Class", "GLC", "GLE"],
-      "Audi": ["Any", "A3", "A4", "A6", "Q3", "Q5", "Q7"],
-      "Ford": ["Any", "Mustang", "F-150", "Explorer", "Edge"],
-      "Chevrolet": ["Any", "Malibu", "Camaro", "Tahoe", "Suburban"],
-      "Nissan": ["Any", "Altima", "Maxima", "Pathfinder", "Patrol"],
-      "Hyundai": ["Any", "Elantra", "Sonata", "Tucson", "Santa Fe"],
-      "Kia": ["Any", "Optima", "Sorento", "Sportage"]
+  // Fetch available cars for generating filter options
+  useEffect(() => {
+    const fetchAvailableCars = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('car_listings')
+          .select('*')
+          .eq('status', 'available');
+          
+        if (error) {
+          console.error("Error fetching cars for filters:", error);
+          return;
+        }
+        
+        setAvailableCars(data || []);
+      } catch (err) {
+        console.error("Error in fetchAvailableCars:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     
-    return modelMap[make] || ["Any"];
-  };
+    fetchAvailableCars();
+  }, []);
   
-  const models = localFilters.make ? getModelsByMake(localFilters.make) : ["Any"];
+  // Dynamically generated filter options
+  const makes = ["Any", ...getUniqueValues(availableCars, "make")];
+  const models = localFilters.make ? ["Any", ...getUniqueModelsByMake(availableCars, localFilters.make)] : ["Any"];
+  const bodyTypes = getUniqueValues(availableCars, "bodyType");
+  const transmissions = ["Any", ...getUniqueValues(availableCars, "transmission")];
+  const fuelTypes = ["Any", ...getUniqueValues(availableCars, "fuelType")];
+  const locations = ["Any", ...emirates];
+  
+  // Get min/max mileage for the range slider
+  const mileages = availableCars.map(car => {
+    if ('user_id' in car) {
+      return car.mileage;
+    } else {
+      return car.mileage;
+    }
+  });
+  
+  const minAvailableMileage = mileages.length > 0 ? Math.min(...mileages) : 0;
+  const maxAvailableMileage = mileages.length > 0 ? Math.max(...mileages) : 200000;
   
   // Update when props change
   useEffect(() => {
