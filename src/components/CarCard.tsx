@@ -1,9 +1,11 @@
+
 import { Link } from "react-router-dom";
 import { Car, formatPrice, formatMileage } from "@/data/cars";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { CarListingRow } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 interface CarCardProps {
   car: Car | CarListingRow;
@@ -43,12 +45,14 @@ const CarCard = ({ car }: CarCardProps) => {
   
   return (
     <Link to={`/car/${id}`} className="car-card block">
-      <div className="relative aspect-video overflow-hidden">
-        <img 
-          src={imageUrl} 
-          alt={`${year} ${make} ${model}`} 
-          className="h-full w-full object-cover transition-transform hover:scale-105 duration-300"
-        />
+      <div className="relative">
+        <AspectRatio ratio={16/9} className="overflow-hidden">
+          <img 
+            src={imageUrl} 
+            alt={`${year} ${make} ${model}`} 
+            className="h-full w-full object-cover transition-transform hover:scale-105 duration-300"
+          />
+        </AspectRatio>
         {status !== "available" && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
             <Badge className={cn(
@@ -66,7 +70,7 @@ const CarCard = ({ car }: CarCardProps) => {
           <h3 className="font-medium text-lg truncate">
             {year} {make} {model}
           </h3>
-          <Badge variant="outline" className="car-badge bg-blue-50 text-car-blue border-car-blue">
+          <Badge variant="outline" className="car-badge bg-blue-50 dark:bg-blue-950 text-car-blue border-car-blue">
             {formatPrice(price)}
           </Badge>
         </div>
