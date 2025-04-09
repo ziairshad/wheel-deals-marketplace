@@ -3,19 +3,41 @@ import { Link } from "react-router-dom";
 import { Car, formatPrice, formatMileage } from "@/data/cars";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { CarListingRow } from "@/integrations/supabase/client";
 
 interface CarCardProps {
-  car: Car;
+  car: Car | CarListingRow;
 }
 
 const CarCard = ({ car }: CarCardProps) => {
-  const { id, make, model, year, price, mileage, location, images, status } = car;
+  // Determine if we're dealing with a sample Car or a CarListingRow from Supabase
+  const isCarListingRow = 'user_id' in car;
+  
+  // Extract properties based on the car type
+  const id = car.id;
+  const make = car.make;
+  const model = car.model;
+  const year = car.year;
+  const price = car.price;
+  const mileage = car.mileage;
+  const location = car.location;
+  const status = car.status;
+  
+  // Handle images differently based on car type
+  const images = isCarListingRow 
+    ? (car.images || []) 
+    : car.images;
+  
+  // Use a placeholder if no images
+  const imageUrl = images && images.length > 0 
+    ? images[0] 
+    : '/placeholder.svg';
   
   return (
     <Link to={`/car/${id}`} className="car-card block">
       <div className="relative aspect-video overflow-hidden">
         <img 
-          src={images[0]} 
+          src={imageUrl} 
           alt={`${year} ${make} ${model}`} 
           className="h-full w-full object-cover transition-transform hover:scale-105 duration-300"
         />
