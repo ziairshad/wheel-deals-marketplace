@@ -58,9 +58,9 @@ const ListingCard = ({ listing, onStatusChange, onDeleteClick }: ListingCardProp
     onStatusChange(id, "sold");
   };
 
-  // Format the date
+  // Format the date with the new format
   const formattedDate = listing.created_at 
-    ? format(new Date(listing.created_at), "d/MMM/yyyy") 
+    ? format(new Date(listing.created_at), "dd MMMM yyyy") 
     : null;
 
   return (

@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Car, formatPrice, formatMileage } from "@/data/cars";
 import { Badge } from "@/components/ui/badge";
@@ -32,9 +31,9 @@ const CarCard = ({ car }: CarCardProps) => {
     ? (car.images || []) 
     : car.images;
   
-  // Format the created date if it exists
+  // Format the created date if it exists with the new format
   const createdAt = isCarListingRow && car.created_at 
-    ? format(new Date(car.created_at), "d/MMM/yyyy")
+    ? format(new Date(car.created_at), "dd MMMM yyyy")
     : null;
   
   // Use a placeholder if no images
