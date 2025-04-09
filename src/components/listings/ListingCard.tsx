@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, MoreVertical, Pencil, Trash2 } from "lucide-react";
@@ -34,6 +35,13 @@ const ListingCard = ({ listing, onStatusChange, onDeleteClick }: ListingCardProp
       default:
         return "bg-gray-100 text-gray-800 hover:bg-gray-100";
     }
+  };
+
+  // Handler for delete that prevents event propagation
+  const handleDeleteClick = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDeleteClick(id);
   };
 
   return (
@@ -117,7 +125,8 @@ const ListingCard = ({ listing, onStatusChange, onDeleteClick }: ListingCardProp
               
               <DropdownMenuItem 
                 className="text-red-600"
-                onClick={() => onDeleteClick(listing.id)}
+                onClick={(e) => handleDeleteClick(e, listing.id)}
+                onSelect={(e) => e.preventDefault()}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete

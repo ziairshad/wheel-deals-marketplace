@@ -76,10 +76,10 @@ export const useListings = () => {
   };
 
   // Simplified dialog management
-  const openDeleteDialog = (id: string) => {
+  const openDeleteDialog = useCallback((id: string) => {
     setListingToDelete(id);
     setShowDeleteDialog(true);
-  };
+  }, []);
 
   // Reset function for all dialog state
   const resetDeleteState = useCallback(() => {
@@ -88,7 +88,7 @@ export const useListings = () => {
     setIsDeleting(false);
   }, []);
 
-  const handleDeleteListing = async () => {
+  const handleDeleteListing = useCallback(async () => {
     if (!listingToDelete) return;
     
     try {
@@ -119,7 +119,7 @@ export const useListings = () => {
       // Reset all states
       resetDeleteState();
     }
-  };
+  }, [listingToDelete, toast, resetDeleteState]);
 
   return {
     listings,

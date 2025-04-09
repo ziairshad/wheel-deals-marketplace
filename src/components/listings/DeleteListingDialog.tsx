@@ -15,7 +15,7 @@ import { Loader2, Trash2 } from "lucide-react";
 interface DeleteListingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
   isDeleting: boolean;
 }
 
@@ -25,6 +25,11 @@ const DeleteListingDialog = ({
   onConfirm,
   isDeleting,
 }: DeleteListingDialogProps) => {
+  const handleConfirm = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await onConfirm();
+  };
+
   return (
     <AlertDialog 
       open={open} 
@@ -44,7 +49,7 @@ const DeleteListingDialog = ({
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
-            onClick={onConfirm}
+            onClick={handleConfirm}
             className="bg-red-600 hover:bg-red-700"
             disabled={isDeleting}
           >
