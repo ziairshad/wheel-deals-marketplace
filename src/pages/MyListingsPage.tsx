@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice, formatMileage } from "@/data/cars";
 import { cn } from "@/lib/utils";
-import { CarListingRow, supabase } from "@/integrations/supabase/client";
+import { CarListingRow } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { fetchMyListings, updateCarListingStatus, deleteCarListing } from "@/services/sellCarService";
 import {
