@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Car, ChevronLeft, AlertCircle, Plus, Edit, Trash, Check } from "lucide-react";
@@ -240,7 +239,7 @@ const MyListingsPage = () => {
                         size="sm" 
                         variant="outline"
                         className="h-7 px-2 text-xs" 
-                        onClick={() => navigate(`/sell?edit=${listing.id}`)}
+                        onClick={() => navigate(`/edit/${listing.id}`)}
                       >
                         <Edit className="h-3 w-3 mr-1" />
                         Edit

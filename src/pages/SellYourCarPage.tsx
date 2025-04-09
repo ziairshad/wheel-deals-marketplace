@@ -4,7 +4,7 @@ import SellCarPageContent from "@/components/sell/SellCarPageContent";
 
 // Simplified main component that just renders the content component
 const SellYourCarPage = () => {
-  return <SellCarPageContent />;
+  return <SellCarPageContent isEditMode={false} />;
 };
 
 export default SellYourCarPage;

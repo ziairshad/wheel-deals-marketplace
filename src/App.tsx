@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import HomePage from "./pages/HomePage";
 import CarDetailsPage from "./pages/CarDetailsPage";
 import SellYourCarPage from "./pages/SellYourCarPage";
+import EditCarPage from "./pages/EditCarPage";
 import MyListingsPage from "./pages/MyListingsPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
@@ -39,7 +40,7 @@ const App = () => (
                 path="/edit/:id" 
                 element={
                   <ProtectedRoute requirePhoneVerification={true}>
-                    <SellYourCarPage />
+                    <EditCarPage />
                   </ProtectedRoute>
                 } 
               />
