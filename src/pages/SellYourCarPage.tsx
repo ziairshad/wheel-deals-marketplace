@@ -76,8 +76,11 @@ const SellYourCarPageContent = () => {
         const carData = await fetchCarById(editId);
         
         if (carData) {
+          console.log("Fetched car data:", carData);
+          
           // Convert from API format to form format
           const formData = convertToFormData(carData);
+          console.log("Converted form data:", formData);
           
           // Set form values
           Object.entries(formData).forEach(([key, value]) => {
@@ -87,6 +90,7 @@ const SellYourCarPageContent = () => {
           // Store existing images
           if (carData.images && carData.images.length > 0) {
             setExistingImages(carData.images);
+            console.log("Setting existing images:", carData.images);
           }
         }
       } catch (error) {

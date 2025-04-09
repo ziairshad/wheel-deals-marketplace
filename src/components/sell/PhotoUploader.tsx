@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FileUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormDescription, FormLabel } from "@/components/ui/form";
@@ -15,7 +15,12 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({
   setImages,
   existingImages = []
 }) => {
-  const [localExistingImages, setLocalExistingImages] = useState<string[]>(existingImages);
+  const [localExistingImages, setLocalExistingImages] = useState<string[]>([]);
+  
+  // Update local state when prop changes
+  useEffect(() => {
+    setLocalExistingImages(existingImages);
+  }, [existingImages]);
   
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
