@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, Pencil, Trash2 } from "lucide-react";
@@ -71,14 +72,16 @@ const ListingCard = ({ listing, onStatusChange, onDeleteClick }: ListingCardProp
             <Car className="h-8 w-8 text-gray-400" />
           </div>
         )}
-        <Badge 
-          className={cn(
-            "absolute top-2 right-2 text-xs px-2 py-0.5",
-            getStatusColor(listing.status)
-          )}
-        >
-          {listing.status.charAt(0).toUpperCase() + listing.status.slice(1)}
-        </Badge>
+        {listing.status !== "available" && (
+          <Badge 
+            className={cn(
+              "absolute top-2 right-2 text-xs px-2 py-0.5",
+              getStatusColor(listing.status)
+            )}
+          >
+            {listing.status.charAt(0).toUpperCase() + listing.status.slice(1)}
+          </Badge>
+        )}
       </div>
       
       <div className="p-4">

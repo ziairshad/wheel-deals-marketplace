@@ -1,6 +1,6 @@
 
 import React from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { 
   Car, 
@@ -15,7 +15,8 @@ import {
   User,
   Check,
   Copy,
-  Globe
+  Globe,
+  Pencil
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -28,11 +29,14 @@ import { fetchCarById, CarListingRow } from "@/integrations/supabase/client";
 import { formatPrice, formatMileage } from "@/data/cars";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const CarDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const [copySuccess, setCopySuccess] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { data: car, isLoading, error } = useQuery({
     queryKey: ['car', id],
@@ -65,6 +69,9 @@ const CarDetailsPage = () => {
         });
       });
   };
+
+  // Check if the current user is the owner of the listing
+  const isOwner = user && car && user.id === car.user_id;
 
   if (isLoading) {
     return (
@@ -121,7 +128,7 @@ const CarDetailsPage = () => {
       <Header />
       
       <main className="flex-1 container py-8">
-        <div className="mb-6">
+        <div className="mb-6 flex justify-between items-center">
           <Link 
             to="/" 
             className="inline-flex items-center text-muted-foreground hover:text-foreground"
@@ -129,6 +136,17 @@ const CarDetailsPage = () => {
             <ChevronLeft className="mr-1 h-4 w-4" />
             Back to listings
           </Link>
+          
+          {isOwner && (
+            <Button
+              onClick={() => navigate(`/edit/${car.id}`)}
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Pencil className="h-4 w-4" />
+              Edit Listing
+            </Button>
+          )}
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -147,9 +165,11 @@ const CarDetailsPage = () => {
                   {carTitle}
                 </h1>
                 <div className="flex items-center mt-1">
-                  <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
-                    {car.status.charAt(0).toUpperCase() + car.status.slice(1)}
-                  </Badge>
+                  {car.status !== "available" && (
+                    <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+                      {car.status.charAt(0).toUpperCase() + car.status.slice(1)}
+                    </Badge>
+                  )}
                   <span className="text-sm text-muted-foreground ml-2">
                     Listed on {new Date(car.created_at).toLocaleDateString()}
                   </span>
