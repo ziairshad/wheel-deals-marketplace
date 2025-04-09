@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Filter } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -61,7 +62,7 @@ const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
           return;
         }
         
-        // Ensure the data includes regional_specs (even if null)
+        // Ensure all car objects have the required regional_specs property
         const carsWithRegionalSpecs = (data || []).map(car => ({
           ...car,
           regional_specs: car.regional_specs || null

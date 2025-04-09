@@ -47,7 +47,7 @@ const HomePage = () => {
           throw new Error('Failed to fetch car listings');
         }
         
-        // Ensure the data includes regional_specs (even if null)
+        // Ensure all car objects have the required regional_specs property
         const carsWithRegionalSpecs = (carListings || []).map(car => ({
           ...car,
           regional_specs: car.regional_specs || null
