@@ -42,16 +42,16 @@ export const submitCarListing = async (
       body_type: formData.bodyType,
       transmission: formData.transmission,
       fuel_type: formData.fuelType,
-      color: formData.color,
+      exterior_color: formData.color, // Changed from color to exterior_color
       location: formData.location,
       description: formData.description,
       contact_name: formData.contactName,
       contact_phone: formData.contactPhone,
       contact_email: formData.contactEmail,
       vin: formData.vin,
-      images: imageUrls,
+      images: imageUrls.length > 0 ? imageUrls : undefined,
       status: 'available',
-      created_at: new Date(),
+      created_at: new Date().toISOString(), // Convert Date to string
     };
     
     // Check if we're editing (formData has an id)

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -87,16 +86,16 @@ const SellYourCarPageContent = () => {
               year: String(carData.year),
               price: String(carData.price),
               mileage: String(carData.mileage),
-              bodyType: carData.body_type,
-              transmission: carData.transmission,
-              fuelType: carData.fuel_type,
-              color: carData.color,
+              bodyType: carData.body_type || "",
+              transmission: carData.transmission || "",
+              fuelType: carData.fuel_type || "",
+              color: carData.exterior_color || "", // Changed from color to exterior_color
               location: carData.location,
-              description: carData.description,
-              contactName: carData.contact_name,
-              contactPhone: carData.contact_phone,
-              contactEmail: carData.contact_email,
-              vin: carData.vin,
+              description: carData.description || "",
+              contactName: carData.contact_name || "",
+              contactPhone: carData.contact_phone || "",
+              contactEmail: carData.contact_email || "",
+              vin: carData.vin || "",
             });
             
             // Set existing images
@@ -142,7 +141,7 @@ const SellYourCarPageContent = () => {
     try {
       setUploading(true);
       
-      await submitCarListing({...values as CarFormData, id: editId}, user.id, images);
+      await submitCarListing(values as CarFormData, user.id, images);
 
       toast({
         title: isEditMode ? "Listing updated!" : "Listing submitted!",
