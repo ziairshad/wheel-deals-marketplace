@@ -12,6 +12,7 @@ import { formatPrice, formatMileage } from "@/data/cars";
 import { cn } from "@/lib/utils";
 import { CarListingRow } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { fetchMyListings } from "@/services/sellCarService";
 
 const MyListingsPage = () => {
   const { user } = useAuth();
@@ -31,19 +32,8 @@ const MyListingsPage = () => {
       try {
         setLoading(true);
         
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/car_listings?user_id=eq.${user.id}&select=*&order=created_at.desc`, {
-          headers: {
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch listings');
-        }
-        
-        const data = await response.json();
-        setListings(data as CarListingRow[]);
+        const listingsData = await fetchMyListings(user.id);
+        setListings(listingsData);
       } catch (err) {
         console.error("Error fetching listings:", err);
         setError("Failed to load your listings. Please try again later.");

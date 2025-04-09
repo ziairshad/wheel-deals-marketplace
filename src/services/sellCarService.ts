@@ -46,50 +46,51 @@ export async function submitCarListing(formData: CarFormData, userId: string, im
       const fileExt = file.name.split('.').pop();
       const fileName = `${carId}/${i}-${Date.now()}.${fileExt}`;
       
-      // Create the car_images bucket if it doesn't exist
-      const { data: bucketData, error: bucketError } = await supabase
-        .storage
-        .listBuckets();
-        
-      if (bucketError) {
-        console.error("Error checking buckets:", bucketError);
+      // Check if bucket exists first
+      const { data: buckets } = await supabase.storage.listBuckets();
+      
+      let bucketExists = false;
+      if (buckets) {
+        bucketExists = buckets.some(bucket => bucket.name === 'car_images');
       }
       
-      // Only attempt to create the bucket if we can access the bucket list
-      if (bucketData) {
-        const bucketExists = bucketData.some(bucket => bucket.name === 'car_images');
-        
-        if (!bucketExists) {
-          const { error: createBucketError } = await supabase
-            .storage
-            .createBucket('car_images', { public: true });
-            
-          if (createBucketError) {
-            console.error("Error creating bucket:", createBucketError);
-            // Continue anyway, the bucket might exist despite the error
-          }
+      // If bucket doesn't exist, try to create it
+      if (!bucketExists) {
+        try {
+          await supabase.storage.createBucket('car_images', {
+            public: true,
+            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'],
+            fileSizeLimit: 5242880, // 5MB
+          });
+        } catch (error) {
+          console.error("Error creating bucket:", error);
+          // Continue anyway, as the bucket might exist despite the error
         }
       }
 
-      // Upload the file to Supabase Storage
-      const { error: uploadError, data: uploadData } = await supabase
-        .storage
-        .from('car_images')
-        .upload(fileName, file);
+      try {
+        // Upload the file to Supabase Storage
+        const { error: uploadError, data: uploadData } = await supabase
+          .storage
+          .from('car_images')
+          .upload(fileName, file);
 
-      if (uploadError) {
-        console.error("Error uploading image:", uploadError);
-        continue; // Try to upload the next image
-      }
+        if (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          continue; // Try to upload the next image
+        }
 
-      // Get the public URL for the uploaded image
-      const { data: publicUrlData } = supabase
-        .storage
-        .from('car_images')
-        .getPublicUrl(fileName);
+        // Get the public URL for the uploaded image
+        const { data: publicUrlData } = supabase
+          .storage
+          .from('car_images')
+          .getPublicUrl(fileName);
 
-      if (publicUrlData) {
-        imageUrls.push(publicUrlData.publicUrl);
+        if (publicUrlData) {
+          imageUrls.push(publicUrlData.publicUrl);
+        }
+      } catch (error) {
+        console.error("Error in image upload process:", error);
       }
     }
 
@@ -126,7 +127,7 @@ export async function fetchMyListings(userId: string): Promise<CarListingRow[]> 
       throw new Error('Failed to fetch listings');
     }
     
-    return data as CarListingRow[];
+    return data || [];
   } catch (error) {
     console.error("Error fetching listings:", error);
     throw error;
