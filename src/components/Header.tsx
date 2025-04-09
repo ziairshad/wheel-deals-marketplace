@@ -16,7 +16,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { useMobile } from "@/hooks/use-mobile";
 
 const Header = () => {
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const isAuthenticated = !!user;
   const navigate = useNavigate();
   const location = useLocation();
@@ -64,8 +64,8 @@ const Header = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.avatar_url || user?.user_metadata?.avatar_url || ""} alt={user?.user_metadata?.name || "Avatar"} />
-                      <AvatarFallback>{(user?.user_metadata?.name || "U").charAt(0).toUpperCase()}</AvatarFallback>
+                      <AvatarImage src={profile?.avatar_url || user?.user_metadata?.avatar_url || ""} alt={profile?.full_name || user?.user_metadata?.name || "Avatar"} />
+                      <AvatarFallback>{(profile?.full_name?.[0] || user?.user_metadata?.name?.[0] || "U").toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <span className="sr-only">Open user menu</span>
                   </Button>
@@ -73,7 +73,7 @@ const Header = () => {
                 <DropdownMenuContent align="end">
                   <div className="grid gap-2 px-2 py-1">
                     <div className="grid gap-0.5">
-                      <p className="text-sm font-medium text-foreground">{user?.user_metadata?.name || user?.email}</p>
+                      <p className="text-sm font-medium text-foreground">{profile?.full_name || user?.user_metadata?.name || user?.email}</p>
                       <p className="text-xs text-muted-foreground">{user?.email}</p>
                     </div>
                   </div>
