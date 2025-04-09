@@ -47,8 +47,14 @@ const HomePage = () => {
           throw new Error('Failed to fetch car listings');
         }
         
+        // Ensure the data includes regional_specs (even if null)
+        const carsWithRegionalSpecs = (carListings || []).map(car => ({
+          ...car,
+          regional_specs: car.regional_specs || null
+        }));
+        
         // Use only the real listings from database
-        const allCars: UnifiedCar[] = carListings || [];
+        const allCars: UnifiedCar[] = carsWithRegionalSpecs;
         
         // Apply filtering
         const filtered = filterCars(allCars, filters);

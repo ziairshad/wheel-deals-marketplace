@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Filter } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -62,7 +61,13 @@ const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
           return;
         }
         
-        setAvailableCars(data || []);
+        // Ensure the data includes regional_specs (even if null)
+        const carsWithRegionalSpecs = (data || []).map(car => ({
+          ...car,
+          regional_specs: car.regional_specs || null
+        }));
+        
+        setAvailableCars(carsWithRegionalSpecs);
       } catch (err) {
         console.error("Error in fetchAvailableCars:", err);
       } finally {
@@ -73,7 +78,6 @@ const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
     fetchAvailableCars();
   }, []);
   
-  // Dynamically generated filter options
   const makes = ["Any", ...getUniqueValues(availableCars, "make")];
   const models = localFilters.make ? ["Any", ...getUniqueModelsByMake(availableCars, localFilters.make)] : ["Any"];
   const bodyTypes = getUniqueValues(availableCars, "bodyType");

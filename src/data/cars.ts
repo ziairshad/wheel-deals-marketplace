@@ -74,7 +74,8 @@ export const cars: Car[] = [
     drivetrain: "RWD",
     sellerType: "dealer",
     sellerName: "Premium Auto Group",
-    listedDate: "2023-03-15"
+    listedDate: "2023-03-15",
+    regionalSpecs: "GCC Specs"
   },
   {
     id: "2",
@@ -111,7 +112,8 @@ export const cars: Car[] = [
     drivetrain: "AWD",
     sellerType: "private",
     sellerName: "Michael T.",
-    listedDate: "2023-03-25"
+    listedDate: "2023-03-25",
+    regionalSpecs: "American Specs"
   },
   {
     id: "3",
@@ -148,7 +150,8 @@ export const cars: Car[] = [
     drivetrain: "AWD",
     sellerType: "dealer",
     sellerName: "Mountain States Toyota",
-    listedDate: "2023-02-10"
+    listedDate: "2023-02-10",
+    regionalSpecs: "Japanese Specs"
   },
   {
     id: "4",
@@ -185,7 +188,8 @@ export const cars: Car[] = [
     drivetrain: "4WD",
     sellerType: "dealer",
     sellerName: "Texas Trucks",
-    listedDate: "2023-01-30"
+    listedDate: "2023-01-30",
+    regionalSpecs: "American Specs"
   },
   {
     id: "5",
@@ -222,7 +226,8 @@ export const cars: Car[] = [
     drivetrain: "FWD",
     sellerType: "private",
     sellerName: "Jennifer L.",
-    listedDate: "2023-03-05"
+    listedDate: "2023-03-05",
+    regionalSpecs: "GCC Specs"
   },
   {
     id: "6",
@@ -259,7 +264,8 @@ export const cars: Car[] = [
     drivetrain: "AWD",
     sellerType: "dealer",
     sellerName: "Windy City Audi",
-    listedDate: "2023-02-18"
+    listedDate: "2023-02-18",
+    regionalSpecs: "European Specs"
   }
 ];
 

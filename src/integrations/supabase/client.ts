@@ -69,7 +69,8 @@ export const addDemoCarListings = async (userId: string) => {
       description: "Well-maintained Toyota Camry with excellent fuel economy and smooth ride. Perfect family car.",
       status: "available",
       user_id: userId,
-      images: ["https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&auto=format&fit=crop"]
+      images: ["https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&auto=format&fit=crop"],
+      regional_specs: "GCC Specs"
     },
     {
       make: "Honda",
@@ -85,7 +86,8 @@ export const addDemoCarListings = async (userId: string) => {
       description: "Spacious Honda CR-V with all the latest features. Perfect for family trips and daily commute.",
       status: "available",
       user_id: userId,
-      images: ["https://images.unsplash.com/photo-1568844293986-ca3c5aea413f?w=800&auto=format&fit=crop"]
+      images: ["https://images.unsplash.com/photo-1568844293986-ca3c5aea413f?w=800&auto=format&fit=crop"],
+      regional_specs: "GCC Specs"
     },
     {
       make: "BMW",
@@ -101,7 +103,8 @@ export const addDemoCarListings = async (userId: string) => {
       description: "Luxury BMW 3 Series with premium features and powerful engine. Sporty and comfortable.",
       status: "available",
       user_id: userId,
-      images: ["https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&auto=format&fit=crop"]
+      images: ["https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&auto=format&fit=crop"],
+      regional_specs: "European Specs"
     },
     {
       make: "Mercedes-Benz",
@@ -117,7 +120,8 @@ export const addDemoCarListings = async (userId: string) => {
       description: "Elegant Mercedes-Benz GLC with cutting-edge technology and refined interior. Excellent condition.",
       status: "available",
       user_id: userId,
-      images: ["https://images.unsplash.com/photo-1606664608504-14281d34ee36?w=800&auto=format&fit=crop"]
+      images: ["https://images.unsplash.com/photo-1606664608504-14281d34ee36?w=800&auto=format&fit=crop"],
+      regional_specs: "European Specs"
     },
     {
       make: "Audi",
@@ -133,7 +137,8 @@ export const addDemoCarListings = async (userId: string) => {
       description: "Sophisticated Audi A4 with premium interior and smooth driving experience. Well maintained.",
       status: "available",
       user_id: userId,
-      images: ["https://images.unsplash.com/photo-1540066019607-e5f69323a8dc?w=800&auto=format&fit=crop"]
+      images: ["https://images.unsplash.com/photo-1540066019607-e5f69323a8dc?w=800&auto=format&fit=crop"],
+      regional_specs: "European Specs"
     },
     {
       make: "Ford",
@@ -149,7 +154,8 @@ export const addDemoCarListings = async (userId: string) => {
       description: "Classic Ford Mustang with powerful V8 engine. Thrilling driving experience guaranteed.",
       status: "available",
       user_id: userId,
-      images: ["https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?w=800&auto=format&fit=crop"]
+      images: ["https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?w=800&auto=format&fit=crop"],
+      regional_specs: "American Specs"
     },
     {
       make: "Nissan",
@@ -165,7 +171,8 @@ export const addDemoCarListings = async (userId: string) => {
       description: "Rugged Nissan Pathfinder with ample space for family adventures. Great off-road capability.",
       status: "available",
       user_id: userId,
-      images: ["https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop"]
+      images: ["https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop"],
+      regional_specs: "GCC Specs"
     },
     {
       make: "Kia",
@@ -181,7 +188,8 @@ export const addDemoCarListings = async (userId: string) => {
       description: "Modern Kia Sportage with fuel-efficient hybrid engine. Packed with safety features.",
       status: "available",
       user_id: userId,
-      images: ["https://images.unsplash.com/photo-1607853554306-b1f99b5500d7?w=800&auto=format&fit=crop"]
+      images: ["https://images.unsplash.com/photo-1607853554306-b1f99b5500d7?w=800&auto=format&fit=crop"],
+      regional_specs: "Korean Specs"
     },
     {
       make: "Hyundai",
@@ -197,7 +205,8 @@ export const addDemoCarListings = async (userId: string) => {
       description: "Reliable Hyundai Tucson with comfortable interior and smooth ride. Great value for money.",
       status: "available",
       user_id: userId,
-      images: ["https://images.unsplash.com/photo-1601929862217-f1bf94503333?w=800&auto=format&fit=crop"]
+      images: ["https://images.unsplash.com/photo-1601929862217-f1bf94503333?w=800&auto=format&fit=crop"],
+      regional_specs: "Korean Specs"
     },
     {
       make: "Tesla",
@@ -213,7 +222,8 @@ export const addDemoCarListings = async (userId: string) => {
       description: "Cutting-edge Tesla Model 3 with long range battery and autopilot features. Zero emissions.",
       status: "available",
       user_id: userId,
-      images: ["https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop"]
+      images: ["https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop"],
+      regional_specs: "American Specs"
     }
   ];
 

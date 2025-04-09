@@ -161,7 +161,11 @@ export async function fetchMyListings(userId: string): Promise<CarListingRow[]> 
       throw new Error('Failed to fetch listings');
     }
     
-    return data || [];
+    // Ensure the data includes regional_specs (even if null)
+    return (data || []).map(car => ({
+      ...car,
+      regional_specs: car.regional_specs || null
+    }));
   } catch (error) {
     console.error("Error fetching listings:", error);
     throw error;
