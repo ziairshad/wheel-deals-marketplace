@@ -74,27 +74,27 @@ export const useListings = () => {
     }
   };
 
-  // Completely revised dialog management
+  // Improved dialog management
   const openDeleteDialog = (id: string) => {
-    // Only allow opening if not already open or deleting
-    if (!showDeleteDialog && !isDeleting) {
+    if (!isDeleting) {
       setListingToDelete(id);
       setShowDeleteDialog(true);
     }
   };
 
   const closeDeleteDialog = () => {
-    // Only allow closing if not currently deleting
     if (!isDeleting) {
       setShowDeleteDialog(false);
+      // We need to clear the listingToDelete state to avoid stale references
+      setListingToDelete(null);
     }
   };
 
-  // Clean reset function that can be called when needed
+  // Reset function with all dialog-related state
   const resetDeleteState = useCallback(() => {
     if (!isDeleting) {
-      setListingToDelete(null);
       setShowDeleteDialog(false);
+      setListingToDelete(null);
     }
   }, [isDeleting]);
 
@@ -126,7 +126,7 @@ export const useListings = () => {
         variant: "destructive"
       });
     } finally {
-      // Reset all states in one batch to avoid UI glitches
+      // Reset all states in correct order
       setIsDeleting(false);
       setShowDeleteDialog(false);
       setListingToDelete(null);

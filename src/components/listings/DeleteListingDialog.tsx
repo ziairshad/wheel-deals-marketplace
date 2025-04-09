@@ -27,23 +27,22 @@ const DeleteListingDialog = ({
   onConfirm,
   isDeleting,
 }: DeleteListingDialogProps) => {
-  // Simplified handler for confirmation - no unnecessary preventDefault
+  // Handle confirmation button click
   const handleConfirm = () => {
     onConfirm();
   };
 
-  // Handle open state changes properly
-  const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen && !isDeleting) {
-      onClose(); // Only call onClose when actually closing and not deleting
+  // Handle cancel button click - explicitly call onClose
+  const handleCancel = () => {
+    if (!isDeleting) {
+      onClose();
     }
-    onOpenChange(newOpen); // Always update the parent state
   };
 
   return (
     <AlertDialog 
       open={open} 
-      onOpenChange={handleOpenChange}
+      onOpenChange={onOpenChange}
     >
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -54,7 +53,7 @@ const DeleteListingDialog = ({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel 
-            onClick={onClose} 
+            onClick={handleCancel} 
             disabled={isDeleting}
           >
             Cancel
