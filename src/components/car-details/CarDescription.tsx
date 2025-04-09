@@ -8,7 +8,7 @@ interface CarDescriptionProps {
 
 const CarDescription = ({ car }: CarDescriptionProps) => {
   return (
-    <div>
+    <div className="bg-white border rounded-lg p-5">
       <h2 className="text-xl font-semibold mb-3">Description</h2>
       <p className="text-muted-foreground whitespace-pre-line">
         {car.description || "No description provided."}
