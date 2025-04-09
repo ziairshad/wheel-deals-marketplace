@@ -1,6 +1,6 @@
 
 import { CarFormData } from "@/types/car";
-import { CarListingRow } from "@/integrations/supabase/client";
+import { CarListingRow, supabase } from "@/integrations/supabase/client";
 
 export async function submitCarListing(formData: CarFormData, userId: string, images: File[]) {
   try {
@@ -25,65 +25,85 @@ export async function submitCarListing(formData: CarFormData, userId: string, im
       vin: formData.vin,
     };
 
-    // Insert car listing into database
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/car_listings`, {
-      method: 'POST',
-      headers: {
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify(carListingData)
-    });
+    // Insert car listing into database using Supabase client
+    const { data: carData, error: insertError } = await supabase
+      .from('car_listings')
+      .insert(carListingData)
+      .select()
+      .single();
 
-    if (!response.ok) {
+    if (insertError) {
+      console.error("Error inserting car listing:", insertError);
       throw new Error('Failed to submit car listing');
     }
 
-    const carData = await response.json();
-    const carId = carData[0].id;
-
-    // Upload images
+    const carId = carData.id;
     const imageUrls = [];
 
+    // Upload images to Supabase Storage
     for (let i = 0; i < images.length; i++) {
       const file = images[i];
       const fileExt = file.name.split('.').pop();
       const fileName = `${carId}/${i}-${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const uploadResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/car_images/${filePath}`, {
-        method: 'POST',
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        },
-        body: formData
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload image');
+      
+      // Create the car_images bucket if it doesn't exist
+      const { data: bucketData, error: bucketError } = await supabase
+        .storage
+        .listBuckets();
+        
+      if (bucketError) {
+        console.error("Error checking buckets:", bucketError);
+      }
+      
+      // Only attempt to create the bucket if we can access the bucket list
+      if (bucketData) {
+        const bucketExists = bucketData.some(bucket => bucket.name === 'car_images');
+        
+        if (!bucketExists) {
+          const { error: createBucketError } = await supabase
+            .storage
+            .createBucket('car_images', { public: true });
+            
+          if (createBucketError) {
+            console.error("Error creating bucket:", createBucketError);
+            // Continue anyway, the bucket might exist despite the error
+          }
+        }
       }
 
-      const publicUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/car_images/${filePath}`;
-      imageUrls.push(publicUrl);
+      // Upload the file to Supabase Storage
+      const { error: uploadError, data: uploadData } = await supabase
+        .storage
+        .from('car_images')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        console.error("Error uploading image:", uploadError);
+        continue; // Try to upload the next image
+      }
+
+      // Get the public URL for the uploaded image
+      const { data: publicUrlData } = supabase
+        .storage
+        .from('car_images')
+        .getPublicUrl(fileName);
+
+      if (publicUrlData) {
+        imageUrls.push(publicUrlData.publicUrl);
+      }
     }
 
-    // Update car listing with image URLs
-    const updateResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/car_listings?id=eq.${carId}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ images: imageUrls })
-    });
+    // Update car listing with image URLs if we have any
+    if (imageUrls.length > 0) {
+      const { error: updateError } = await supabase
+        .from('car_listings')
+        .update({ images: imageUrls })
+        .eq('id', carId);
 
-    if (!updateResponse.ok) {
-      throw new Error('Failed to update car listing with images');
+      if (updateError) {
+        console.error("Error updating car listing with images:", updateError);
+        // We'll continue anyway since the listing was created
+      }
     }
 
     return { success: true, carId };
@@ -95,18 +115,17 @@ export async function submitCarListing(formData: CarFormData, userId: string, im
 
 export async function fetchMyListings(userId: string): Promise<CarListingRow[]> {
   try {
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/car_listings?user_id=eq.${userId}&select=*&order=created_at.desc`, {
-      headers: {
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json'
-      }
-    });
+    const { data, error } = await supabase
+      .from('car_listings')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
     
-    if (!response.ok) {
+    if (error) {
+      console.error("Error fetching listings:", error);
       throw new Error('Failed to fetch listings');
     }
     
-    const data = await response.json();
     return data as CarListingRow[];
   } catch (error) {
     console.error("Error fetching listings:", error);
