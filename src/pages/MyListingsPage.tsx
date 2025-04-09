@@ -22,7 +22,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
@@ -38,6 +37,7 @@ const MyListingsPage = () => {
   const [listings, setListings] = useState<CarListingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [listingToDelete, setListingToDelete] = useState<string | null>(null);
 
   const getListings = async () => {
@@ -94,9 +94,22 @@ const MyListingsPage = () => {
     }
   };
 
-  const handleDeleteListing = async (id: string) => {
+  const openDeleteDialog = (id: string) => {
+    setListingToDelete(id);
+    setShowDeleteDialog(true);
+  };
+
+  const closeDeleteDialog = () => {
+    setShowDeleteDialog(false);
+    // Small delay to ensure the dialog is fully closed before clearing the ID
+    setTimeout(() => setListingToDelete(null), 200);
+  };
+
+  const handleDeleteListing = async () => {
+    if (!listingToDelete) return;
+    
     try {
-      await deleteCarListing(id);
+      await deleteCarListing(listingToDelete);
       
       toast({
         title: "Success",
@@ -106,8 +119,11 @@ const MyListingsPage = () => {
       
       // Remove the listing from our state
       setListings(prevListings => 
-        prevListings.filter(listing => listing.id !== id)
+        prevListings.filter(listing => listing.id !== listingToDelete)
       );
+      
+      // Close the dialog
+      closeDeleteDialog();
     } catch (error) {
       console.error("Error deleting listing:", error);
       toast({
@@ -115,8 +131,7 @@ const MyListingsPage = () => {
         description: "Failed to delete the listing.",
         variant: "destructive"
       });
-    } finally {
-      setListingToDelete(null);
+      closeDeleteDialog();
     }
   };
 
@@ -242,61 +257,39 @@ const MyListingsPage = () => {
                       View Details
                     </Button>
                     
-                    <AlertDialog>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8"
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => navigate(`/edit/${listing.id}`)}>
+                          Edit
+                        </DropdownMenuItem>
+                        
+                        {listing.status !== "sold" && (
+                          <DropdownMenuItem 
+                            onClick={() => handleStatusChange(listing.id, "sold")}
+                            className="text-green-600"
                           >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/edit/${listing.id}`)}>
-                            Edit
+                            <Check className="h-4 w-4 mr-2" />
+                            Mark as Sold
                           </DropdownMenuItem>
-                          
-                          {listing.status !== "sold" && (
-                            <DropdownMenuItem 
-                              onClick={() => handleStatusChange(listing.id, "sold")}
-                              className="text-green-600"
-                            >
-                              <Check className="h-4 w-4 mr-2" />
-                              Mark as Sold
-                            </DropdownMenuItem>
-                          )}
-                          
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem 
-                              className="text-red-600"
-                              onClick={() => setListingToDelete(listing.id)}
-                            >
-                              Delete
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This will permanently delete this car listing. This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel onClick={() => setListingToDelete(null)}>Cancel</AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={() => handleDeleteListing(listing.id)}
-                            className="bg-red-600 hover:bg-red-700"
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                        )}
+                        
+                        <DropdownMenuItem 
+                          className="text-red-600"
+                          onClick={() => openDeleteDialog(listing.id)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </div>
@@ -306,6 +299,27 @@ const MyListingsPage = () => {
       </main>
       
       <Footer />
+
+      {/* Separate Alert Dialog outside of the map loop */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this car listing. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteListing}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
