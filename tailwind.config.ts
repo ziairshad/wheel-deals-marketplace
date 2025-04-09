@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -42,7 +41,7 @@ export default {
 					foreground: 'hsl(var(--muted-foreground))'
 				},
 				accent: {
-					DEFAULT: 'hsl(var(--accent))',
+					DEFAULT: 'hsl(var(--accent))', // Vivid Purple
 					foreground: 'hsl(var(--accent-foreground))'
 				},
 				popover: {
@@ -68,6 +67,15 @@ export default {
 				'car-silver': '#9ca3af',
 				'car-red': '#ef4444',
 				'car-light': '#f9fafb',
+				// Optional: Add some additional violet-related colors if desired
+				violet: {
+					50: '#f5f3ff',
+					100: '#E5DEFF',
+					200: '#D6BCFA',
+					500: '#8B5CF6', // Vivid Purple
+					600: '#7E69AB', // Secondary Purple
+					700: '#6E59A5'  // Tertiary Purple
+				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
