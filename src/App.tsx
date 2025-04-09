@@ -11,6 +11,7 @@ import CarDetailsPage from "./pages/CarDetailsPage";
 import SellYourCarPage from "./pages/SellYourCarPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -25,7 +26,14 @@ const App = () => (
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/car/:id" element={<CarDetailsPage />} />
-              <Route path="/sell" element={<SellYourCarPage />} />
+              <Route 
+                path="/sell" 
+                element={
+                  <ProtectedRoute requirePhoneVerification={true}>
+                    <SellYourCarPage />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path="/auth" element={<AuthPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

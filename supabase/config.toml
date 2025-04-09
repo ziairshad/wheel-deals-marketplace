@@ -1,1 +1,17 @@
+
 project_id = "quwvbnrtlvdtvelcwqsy"
+
+[api]
+port = 54321
+enabled = true
+
+[db]
+port = 54322
+shadow_port = 54320
+
+[studio]
+port = 54323
+enabled = true
+
+[functions.verify-phone]
+verify_jwt = true
