@@ -21,31 +21,51 @@ import {
 } from "@/components/ui/accordion";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-import { Car, emirates } from "@/data/cars";
-import { FilterOptions, getUniqueValues, getUniqueModelsByMake } from "@/utils/filter-utils";
+import { emirates } from "@/data/cars";
+import { FilterOptions } from "@/utils/filter-utils";
 
 interface FilterSidebarProps {
-  cars: Car[];
   filters: FilterOptions;
   onFilterChange: (filters: FilterOptions) => void;
 }
 
-const FilterSidebar = ({ cars, filters, onFilterChange }: FilterSidebarProps) => {
+const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
   const isMobile = useIsMobile();
   const [localFilters, setLocalFilters] = useState<FilterOptions>(filters);
   
-  // Get unique values for dropdowns
-  const makes = ["Any", ...getUniqueValues(cars, "make")];
-  const models = localFilters.make ? ["Any", ...getUniqueModelsByMake(cars, localFilters.make)] : [];
-  const bodyTypes = getUniqueValues(cars, "bodyType");
-  const transmissions = ["Any", ...getUniqueValues(cars, "transmission")];
-  const fuelTypes = ["Any", ...getUniqueValues(cars, "fuelType")];
+  // Define static values for dropdowns since we no longer derive them from cars prop
+  const makes = ["Any", "Toyota", "Honda", "BMW", "Mercedes-Benz", "Audi", "Ford", "Chevrolet", "Nissan", "Hyundai", "Kia"];
+  const bodyTypes = ["Sedan", "SUV", "Coupe", "Hatchback", "Convertible", "Truck", "Van"];
+  const transmissions = ["Any", "Automatic", "Manual"];
+  const fuelTypes = ["Any", "Petrol", "Diesel", "Hybrid", "Electric"];
   const locations = ["Any", ...emirates];
   
-  // Get min/max mileage for the range slider
-  const mileages = cars.map(car => car.mileage);
-  const minAvailableMileage = Math.min(...mileages);
-  const maxAvailableMileage = Math.max(...mileages);
+  // Default mileage values
+  const minAvailableMileage = 0;
+  const maxAvailableMileage = 200000;
+  
+  // Get models based on make
+  const getModelsByMake = (make: string | null) => {
+    if (!make || make === "Any") return ["Any"];
+    
+    // Basic mapping of makes to models
+    const modelMap: Record<string, string[]> = {
+      "Toyota": ["Any", "Camry", "Corolla", "RAV4", "Land Cruiser", "Prado"],
+      "Honda": ["Any", "Civic", "Accord", "CR-V", "Pilot"],
+      "BMW": ["Any", "3 Series", "5 Series", "X3", "X5", "X7"],
+      "Mercedes-Benz": ["Any", "C-Class", "E-Class", "S-Class", "GLC", "GLE"],
+      "Audi": ["Any", "A3", "A4", "A6", "Q3", "Q5", "Q7"],
+      "Ford": ["Any", "Mustang", "F-150", "Explorer", "Edge"],
+      "Chevrolet": ["Any", "Malibu", "Camaro", "Tahoe", "Suburban"],
+      "Nissan": ["Any", "Altima", "Maxima", "Pathfinder", "Patrol"],
+      "Hyundai": ["Any", "Elantra", "Sonata", "Tucson", "Santa Fe"],
+      "Kia": ["Any", "Optima", "Sorento", "Sportage"]
+    };
+    
+    return modelMap[make] || ["Any"];
+  };
+  
+  const models = localFilters.make ? getModelsByMake(localFilters.make) : ["Any"];
   
   // Update when props change
   useEffect(() => {
