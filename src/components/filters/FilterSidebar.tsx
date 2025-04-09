@@ -257,108 +257,114 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   ];
 
   return (
-    <div className="h-full overflow-auto space-y-4 pr-2">
-      <Accordion type="multiple" defaultValue={["make", "model", "price", "year"]}>
-        <SelectFilter
-          title="Make"
-          placeholder="Select make"
-          value={filters.make}
-          options={makes}
-          onValueChange={handleMakeChange}
-          accordionValue="make"
-        />
+    <div className="h-full flex flex-col">
+      <div className="sticky top-0 bg-background pt-1 pb-3 z-10">
+        <h2 className="text-xl font-semibold mb-2">Filter Vehicles</h2>
+        <Separator />
+      </div>
+      <div className="overflow-auto flex-1 space-y-4 pr-2">
+        <Accordion type="multiple" defaultValue={["make", "model", "price", "year"]}>
+          <SelectFilter
+            title="Make"
+            placeholder="Select make"
+            value={filters.make}
+            options={makes}
+            onValueChange={handleMakeChange}
+            accordionValue="make"
+          />
 
-        <SelectFilter
-          title="Model"
-          placeholder="Select model"
-          value={filters.model}
-          options={models}
-          onValueChange={handleModelChange}
-          accordionValue="model"
-          disabled={!filters.make}
-        />
+          <SelectFilter
+            title="Model"
+            placeholder="Select model"
+            value={filters.model}
+            options={models}
+            onValueChange={handleModelChange}
+            accordionValue="model"
+            disabled={!filters.make}
+          />
 
-        <RangeFilter
-          title="Price Range"
-          min={minMaxValues.price.min}
-          max={minMaxValues.price.max}
-          step={1000}
-          value={priceRange}
-          onValueChange={handlePriceRangeChange}
-          formatValue={formatPrice}
-          accordionValue="price"
-        />
+          <RangeFilter
+            title="Price Range"
+            min={minMaxValues.price.min}
+            max={minMaxValues.price.max}
+            step={1000}
+            value={priceRange}
+            onValueChange={handlePriceRangeChange}
+            formatValue={formatPrice}
+            accordionValue="price"
+          />
 
-        <RangeFilter
-          title="Year Range"
-          min={minMaxValues.year.min}
-          max={minMaxValues.year.max}
-          step={1}
-          value={yearRange}
-          onValueChange={handleYearRangeChange}
-          accordionValue="year"
-        />
+          <RangeFilter
+            title="Year Range"
+            min={minMaxValues.year.min}
+            max={minMaxValues.year.max}
+            step={1}
+            value={yearRange}
+            onValueChange={handleYearRangeChange}
+            accordionValue="year"
+          />
 
-        <CheckboxFilter
-          title="Body Type"
-          options={bodyTypes}
-          selectedOptions={filters.bodyTypes}
-          onOptionChange={handleBodyTypeChange}
-          accordionValue="bodyType"
-        />
+          <CheckboxFilter
+            title="Body Type"
+            options={bodyTypes}
+            selectedOptions={filters.bodyTypes}
+            onOptionChange={handleBodyTypeChange}
+            accordionValue="bodyType"
+          />
 
-        <CustomSelectFilter
-          title="Transmission"
-          placeholder="Select transmission"
-          value={filters.transmission}
-          options={transmissionOptions}
-          onValueChange={handleTransmissionChange}
-          accordionValue="transmission"
-        />
+          <CustomSelectFilter
+            title="Transmission"
+            placeholder="Select transmission"
+            value={filters.transmission}
+            options={transmissionOptions}
+            onValueChange={handleTransmissionChange}
+            accordionValue="transmission"
+          />
 
-        <CustomSelectFilter
-          title="Fuel Type"
-          placeholder="Select fuel type"
-          value={filters.fuelType}
-          options={fuelTypeOptions}
-          onValueChange={handleFuelTypeChange}
-          accordionValue="fuelType"
-        />
+          <CustomSelectFilter
+            title="Fuel Type"
+            placeholder="Select fuel type"
+            value={filters.fuelType}
+            options={fuelTypeOptions}
+            onValueChange={handleFuelTypeChange}
+            accordionValue="fuelType"
+          />
 
-        <SelectFilter
-          title="Location"
-          placeholder="Select location"
-          value={filters.location}
-          options={locations}
-          onValueChange={handleLocationChange}
-          accordionValue="location"
-        />
+          <SelectFilter
+            title="Location"
+            placeholder="Select location"
+            value={filters.location}
+            options={locations}
+            onValueChange={handleLocationChange}
+            accordionValue="location"
+          />
 
-        <SelectFilter
-          title="Regional Specs"
-          placeholder="Select regional specs"
-          value={filters.regionalSpecs}
-          options={regionalSpecs}
-          onValueChange={handleRegionalSpecsChange}
-          accordionValue="regionalSpecs"
-        />
+          <SelectFilter
+            title="Regional Specs"
+            placeholder="Select regional specs"
+            value={filters.regionalSpecs}
+            options={regionalSpecs}
+            onValueChange={handleRegionalSpecsChange}
+            accordionValue="regionalSpecs"
+          />
 
-        <RangeFilter
-          title="Mileage Range"
-          min={minMaxValues.mileage.min}
-          max={minMaxValues.mileage.max}
-          step={1000}
-          value={mileageRange}
-          onValueChange={handleMileageRangeChange}
-          formatValue={formatMileage}
-          accordionValue="mileage"
-        />
-      </Accordion>
+          <RangeFilter
+            title="Mileage Range"
+            min={minMaxValues.mileage.min}
+            max={minMaxValues.mileage.max}
+            step={1000}
+            value={mileageRange}
+            onValueChange={handleMileageRangeChange}
+            formatValue={formatMileage}
+            accordionValue="mileage"
+          />
+        </Accordion>
 
-      <Separator />
-      <Button variant="outline" className="w-full" onClick={handleResetFilters}>
-        Reset Filters
-      </Button>
+        <Separator />
+        <Button variant="outline" className="w-full" onClick={handleResetFilters}>
+          Reset Filters
+        </Button>
+      </div>
     </div>
   );
 };
