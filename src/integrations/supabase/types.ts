@@ -9,6 +9,75 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      car_listings: {
+        Row: {
+          body_type: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          description: string | null
+          exterior_color: string | null
+          fuel_type: string | null
+          id: string
+          images: string[] | null
+          location: string
+          make: string
+          mileage: number
+          model: string
+          price: number
+          status: string
+          transmission: string | null
+          user_id: string
+          vin: string | null
+          year: number
+        }
+        Insert: {
+          body_type?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          exterior_color?: string | null
+          fuel_type?: string | null
+          id?: string
+          images?: string[] | null
+          location: string
+          make: string
+          mileage: number
+          model: string
+          price: number
+          status?: string
+          transmission?: string | null
+          user_id: string
+          vin?: string | null
+          year: number
+        }
+        Update: {
+          body_type?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          exterior_color?: string | null
+          fuel_type?: string | null
+          id?: string
+          images?: string[] | null
+          location?: string
+          make?: string
+          mileage?: number
+          model?: string
+          price?: number
+          status?: string
+          transmission?: string | null
+          user_id?: string
+          vin?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
       otp_codes: {
         Row: {
           code: string

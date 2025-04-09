@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -26,6 +25,7 @@ import CarGallery from "@/components/CarGallery";
 import { supabase, CarListingRow } from "@/integrations/supabase/client";
 import { formatPrice, formatMileage } from "@/data/cars";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const CarDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,23 +35,17 @@ const CarDetailsPage = () => {
   const { data: car, isLoading, error } = useQuery({
     queryKey: ['car', id],
     queryFn: async () => {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/car_listings?id=eq.${id}&select=*`, {
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
+      const { data, error } = await supabase
+        .from('car_listings')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
         throw new Error('Failed to fetch car details');
       }
-      
-      const data = await response.json();
-      if (!data || data.length === 0) {
-        throw new Error('Car not found');
-      }
-      
-      return data[0] as CarListingRow;
+
+      return data as CarListingRow;
     }
   });
 
@@ -148,7 +142,10 @@ const CarDetailsPage = () => {
           {/* Car Details Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* Car Gallery */}
-            <CarGallery images={car.images || []} title={carTitle} />
+            <CarGallery 
+              images={car.images || []} 
+              title={carTitle} 
+            />
             
             {/* Car Title & Price */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
