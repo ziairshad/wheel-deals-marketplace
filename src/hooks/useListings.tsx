@@ -84,30 +84,29 @@ export const useListings = () => {
     // Only allow closing if not currently deleting
     if (!isDeleting) {
       setShowDeleteDialog(false);
-      setListingToDelete(null);
+      // Use a small delay before clearing the ID to prevent UI issues
+      setTimeout(() => {
+        setListingToDelete(null);
+      }, 100);
     }
   };
 
   const handleDeleteListing = async () => {
-    if (!listingToDelete || isDeleting) return;
+    if (!listingToDelete) return;
     
     try {
       setIsDeleting(true);
       
-      await deleteCarListing(listingToDelete);
-      
       // Store the ID before clearing it
       const deletedId = listingToDelete;
       
-      // Update state to remove the deleted listing
+      // Perform the actual deletion
+      await deleteCarListing(deletedId);
+      
+      // Update local state to remove the deleted listing
       setListings(prevListings => 
         prevListings.filter(listing => listing.id !== deletedId)
       );
-      
-      // Reset states immediately
-      setShowDeleteDialog(false);
-      setListingToDelete(null);
-      setIsDeleting(false);
       
       toast({
         title: "Success",
@@ -117,14 +116,19 @@ export const useListings = () => {
     } catch (error) {
       console.error("Error deleting listing:", error);
       
-      // Reset the deleting state so user can try again
-      setIsDeleting(false);
-      
       toast({
         title: "Error",
         description: "Failed to delete the listing.",
         variant: "destructive"
       });
+    } finally {
+      // Always reset all states, regardless of success or failure
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+      // Short timeout to ensure UI updates properly
+      setTimeout(() => {
+        setListingToDelete(null);
+      }, 100);
     }
   };
 

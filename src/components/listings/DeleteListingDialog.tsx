@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 
 interface DeleteListingDialogProps {
   open: boolean;
@@ -27,8 +27,16 @@ const DeleteListingDialog = ({
   onConfirm,
   isDeleting,
 }: DeleteListingDialogProps) => {
+  // Handle confirm separately to avoid state management issues
+  const handleConfirm = () => {
+    onConfirm();
+  };
+
   return (
-    <AlertDialog open={open} onOpenChange={isDeleting ? undefined : onOpenChange}>
+    <AlertDialog 
+      open={open} 
+      onOpenChange={isDeleting ? undefined : onOpenChange}
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -41,7 +49,7 @@ const DeleteListingDialog = ({
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
-            onClick={onConfirm}
+            onClick={handleConfirm}
             className="bg-red-600 hover:bg-red-700"
             disabled={isDeleting}
           >
@@ -51,7 +59,10 @@ const DeleteListingDialog = ({
                 Deleting...
               </>
             ) : (
-              "Delete"
+              <>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </>
             )}
           </AlertDialogAction>
         </AlertDialogFooter>
