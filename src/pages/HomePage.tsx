@@ -1,209 +1,171 @@
-
-import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Car } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import FilterSidebar from "@/components/FilterSidebar";
 import CarCard from "@/components/CarCard";
-import { cars as sampleCars } from "@/data/cars";
-import { 
-  FilterOptions, 
-  filterCars, 
-  initialFilterOptions, 
-  sortOptions 
-} from "@/utils/filter-utils";
-import { 
-  Select, 
-  SelectContent,
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { supabase, CarListingRow } from "@/integrations/supabase/client";
+import FilterSidebar from "@/components/FilterSidebar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useMobile } from "@/hooks/use-mobile";
+import { Car as CarType } from "@/data/cars";
+import { initialCars } from "@/data/cars";
+import { CarListingRow, supabase } from "@/integrations/supabase/client";
+import { UnifiedCar, filterCars, initialFilterOptions, sortOptions, FilterOptions } from "@/utils/filter-utils";
 
 const HomePage = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [filters, setFilters] = useState<FilterOptions>(initialFilterOptions);
-  const [activeSort, setActiveSort] = useState<string>("latest");
-  const [allCars, setAllCars] = useState<(typeof sampleCars[0] | CarListingRow)[]>([...sampleCars]);
+  const [filteredCars, setFilteredCars] = useState<UnifiedCar[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<FilterOptions>(initialFilterOptions);
+  const [selectedSort, setSelectedSort] = useState(sortOptions[0]);
+  const [showSampleCars, setShowSampleCars] = useState(false);
   
-  // Fetch cars from Supabase
+  const { toast } = useToast();
+  const isMobile = useMobile();
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
+  const [searchParams] = useSearchParams();
+  
+  const toggleFilters = () => {
+    setIsFilterOpen(!isFilterOpen);
+  };
+  
   useEffect(() => {
-    const fetchCars = async () => {
-      setLoading(true);
+    // Check if there are any query parameters
+    const hasQueryParams = Array.from(searchParams.keys()).length > 0;
+    
+    // If there are query params, show sample cars
+    setShowSampleCars(hasQueryParams);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const fetchData = async () => {
       try {
-        const { data, error } = await supabase
-          .from("car_listings")
-          .select("*")
-          .eq("status", "available");
-          
-        if (error) {
-          throw error;
+        setLoading(true);
+        setError(null);
+        
+        // Fetch car listings from Supabase
+        const { data: carListings, error: fetchError } = await supabase
+          .from('car_listings')
+          .select('*')
+          .eq('status', 'available');
+        
+        if (fetchError) {
+          console.error("Error fetching car listings:", fetchError);
+          throw new Error('Failed to fetch car listings');
         }
         
-        if (data) {
-          // Transform Supabase data to match the format of sample cars
-          const transformedCars = data.map(car => ({
-            ...car,
-            id: car.id,
-            price: car.price,
-            mileage: car.mileage,
-            year: car.year,
-            make: car.make,
-            model: car.model,
-            bodyType: car.body_type || undefined,
-            transmission: car.transmission || undefined,
-            fuelType: car.fuel_type || undefined,
-            color: car.exterior_color || undefined,
-            location: car.location,
-            description: car.description || undefined,
-            images: car.images || [],
-            features: [],
-            seller: {
-              name: car.contact_name || "Seller",
-              phone: car.contact_phone || "Not provided",
-              email: car.contact_email || "Not provided"
-            }
-          }));
-          
-          // Combine sample cars with real cars from database
-          setAllCars([...sampleCars, ...transformedCars]);
-        }
+        // Combine sample cars and real listings if needed
+        const allCars: UnifiedCar[] = showSampleCars 
+          ? [...initialCars, ...(carListings || [])]
+          : [...(carListings || [])];
+        
+        // Apply filtering
+        const filtered = filterCars(allCars, filters);
+        
+        // Apply sorting
+        const sorted = [...filtered].sort(selectedSort.sortFn);
+        
+        setFilteredCars(sorted);
+        setLoading(false);
       } catch (error) {
-        console.error("Error fetching car listings:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load car listings. Please try again.",
-          variant: "destructive"
-        });
-      } finally {
+        console.error("Error in fetchData:", error);
+        setError("Failed to load cars. Please try again later.");
         setLoading(false);
       }
     };
     
-    fetchCars();
-  }, [toast]);
-  
-  // Parse search query from URL when component mounts or URL changes
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const searchQuery = searchParams.get("search");
-    
-    console.log("URL search changed:", searchQuery);
-    
-    // Update filters with search query from URL or clear it
-    setFilters(prev => ({ ...prev, search: searchQuery || null }));
-  }, [location.search]);
-  
+    fetchData();
+  }, [searchParams, showSampleCars]);
+
   const handleFilterChange = (newFilters: FilterOptions) => {
-    const updatedFilters = { ...newFilters };
-    
-    // If search was updated in filters, update URL
-    if (filters.search !== newFilters.search) {
-      const searchParams = new URLSearchParams(location.search);
-      
-      if (newFilters.search) {
-        searchParams.set("search", newFilters.search);
-      } else {
-        searchParams.delete("search");
-      }
-      
-      navigate({ search: searchParams.toString() }, { replace: true });
-    }
-    
-    setFilters(updatedFilters);
+    setFilters(newFilters);
   };
-  
-  const handleSortChange = (value: string) => {
-    setActiveSort(value);
+
+  const handleSortChange = (sortOption: (typeof sortOptions)[0]) => {
+    setSelectedSort(sortOption);
   };
-  
-  // Apply filters and sorting
-  const filteredCars = filterCars(allCars, filters);
-  const sortedCars = [...filteredCars].sort(
-    sortOptions.find(option => option.id === activeSort)?.sortFn || 
-    sortOptions[0].sortFn
-  );
-  
-  const activeSortOption = sortOptions.find(option => option.id === activeSort);
-  
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <div className="container py-6 flex-1">
-        {/* Search results heading */}
-        {filters.search && (
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold">
-              Search results for "{filters.search}"
-            </h1>
-            <p className="text-muted-foreground">
-              Found {filteredCars.length} cars matching your search
-            </p>
+      <main className="flex-1 container grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 py-8">
+        {/* Filter Sidebar (visible on larger screens) */}
+        <aside className="hidden lg:block">
+          <FilterSidebar 
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onSortChange={handleSortChange}
+            selectedSort={selectedSort}
+          />
+        </aside>
+        
+        {/* Mobile Filter Button (visible on smaller screens) */}
+        {isMobile && (
+          <Button 
+            onClick={toggleFilters}
+            className="lg:hidden bg-car-blue hover:bg-blue-700 mb-4"
+          >
+            {isFilterOpen ? "Close Filters" : "Open Filters"}
+          </Button>
+        )}
+        
+        {/* Mobile Filter Overlay */}
+        {isMobile && isFilterOpen && (
+          <div className="fixed inset-0 bg-black/50 z-50">
+            <aside className="absolute top-0 left-0 w-80 h-full bg-white shadow-lg p-4">
+              <FilterSidebar 
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onSortChange={handleSortChange}
+                selectedSort={selectedSort}
+              />
+              <Button onClick={toggleFilters} className="mt-4 w-full">Close Filters</Button>
+            </aside>
           </div>
         )}
         
-        <div className="flex flex-col md:flex-row gap-6">
-          <FilterSidebar 
-            cars={allCars}
-            filters={filters}
-            onFilterChange={handleFilterChange}
-          />
-          
-          <div className="flex-1">
-            <div className="flex justify-between items-center mb-6">
-              <div className="text-muted-foreground">
-                {loading ? 'Loading...' : `${sortedCars.length} ${sortedCars.length === 1 ? 'car' : 'cars'} found`}
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <span className="text-sm">Sort by:</span>
-                <Select
-                  value={activeSort}
-                  onValueChange={handleSortChange}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue>
-                      {activeSortOption?.label || "Latest"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortOptions.map((option) => (
-                      <SelectItem key={option.id} value={option.id}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        {/* Car Listings */}
+        <section>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="aspect-video rounded-md" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[250px]" />
+                    <Skeleton className="h-4 w-[200px]" />
+                  </div>
+                </div>
+              ))}
             </div>
-            
-            {loading ? (
-              <div className="flex justify-center py-12">
-                <p>Loading cars...</p>
-              </div>
-            ) : sortedCars.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sortedCars.map((car) => (
-                  <CarCard key={car.id} car={car} />
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <h3 className="text-xl font-semibold mb-2">No cars found</h3>
-                <p className="text-muted-foreground mb-4">
-                  Try adjusting your filters or search criteria
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <Car className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+              <h3 className="text-lg font-medium mb-2">Failed to load cars</h3>
+              <p className="text-muted-foreground">{error}</p>
+              <Button onClick={() => window.location.reload()}>Retry</Button>
+            </div>
+          ) : filteredCars.length === 0 ? (
+            <div className="text-center py-12">
+              <Car className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+              <h3 className="text-lg font-medium mb-2">No cars found</h3>
+              <p className="text-muted-foreground">
+                No cars match your current filter criteria.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredCars.map((car) => (
+                <CarCard key={car.id} car={car} />
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
       
       <Footer />
     </div>

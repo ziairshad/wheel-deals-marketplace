@@ -1,4 +1,3 @@
-
 import { Car } from "../data/cars";
 import { CarListingRow } from "@/integrations/supabase/client";
 
@@ -61,10 +60,8 @@ export const filterCars = (cars: UnifiedCar[], filters: FilterOptions): UnifiedC
     // Search filter
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
-      const description = 'description' in car ? car.description : 
-                         ('user_id' in car ? car.description : '');
-                         
-      const searchableText = `${getCarProperty(car, 'make')} ${getCarProperty(car, 'model')} ${description || ''}`.toLowerCase();
+      const description = getCarProperty(car, 'description') || '';
+      const searchableText = `${getCarProperty(car, 'make')} ${getCarProperty(car, 'model')} ${description}`.toLowerCase();
       if (!searchableText.includes(searchTerm)) {
         return false;
       }
