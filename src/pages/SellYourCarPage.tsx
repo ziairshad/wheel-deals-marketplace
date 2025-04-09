@@ -71,8 +71,12 @@ const SellYourCarPageContent = () => {
     const fetchCarData = async () => {
       if (!editId) return;
       
+      // Make sure editId is not a template literal but the actual ID
+      if (editId === ':id') return;
+      
       try {
         setLoading(true);
+        console.log("Fetching car with ID:", editId);
         const carData = await fetchCarById(editId);
         
         if (carData) {

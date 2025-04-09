@@ -1,8 +1,10 @@
+
 import { CarFormData } from "@/types/car";
 import { CarListingRow, supabase } from "@/integrations/supabase/client";
 
 export async function fetchCarById(carId: string) {
   try {
+    console.log("Fetching car with ID:", carId);
     const { data, error } = await supabase
       .from('car_listings')
       .select('*')
@@ -11,9 +13,15 @@ export async function fetchCarById(carId: string) {
     
     if (error) {
       console.error("Error fetching car:", error);
-      throw new Error('Failed to fetch car details');
+      throw new Error(`Failed to fetch car details: ${error.message}`);
     }
     
+    if (!data) {
+      console.error("No car found with ID:", carId);
+      throw new Error(`No car found with ID: ${carId}`);
+    }
+    
+    console.log("Successfully fetched car data:", data);
     return data;
   } catch (error) {
     console.error("Error fetching car:", error);
