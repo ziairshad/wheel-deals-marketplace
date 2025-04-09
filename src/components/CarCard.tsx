@@ -69,13 +69,13 @@ const CarCard = ({ car }: CarCardProps) => {
         <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
           <span>{formatMileage(mileage)}</span>
           <span className="text-xs">•</span>
-          <span className="truncate">{location}</span>
           {regionalSpecs && (
             <>
-              <span className="text-xs">•</span>
               <span className="truncate">{regionalSpecs}</span>
+              <span className="text-xs">•</span>
             </>
           )}
+          <span className="truncate">{location}</span>
         </div>
       </div>
     </Link>

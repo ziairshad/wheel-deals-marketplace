@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, Pencil, Trash2 } from "lucide-react";
@@ -95,13 +94,13 @@ const ListingCard = ({ listing, onStatusChange, onDeleteClick }: ListingCardProp
         <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
           <span>{formatMileage(listing.mileage)}</span>
           <span className="text-xs">•</span>
-          <span className="truncate">{listing.location}</span>
           {listing.regional_specs && (
             <>
-              <span className="text-xs">•</span>
               <span className="truncate">{listing.regional_specs}</span>
+              <span className="text-xs">•</span>
             </>
           )}
+          <span className="truncate">{listing.location}</span>
         </div>
         
         <div className="mt-3 flex items-center justify-between">
