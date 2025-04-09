@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Accordion } from "@/components/ui/accordion";
 import {
   UnifiedCar,
   FilterOptions,
@@ -262,28 +262,25 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         <Separator />
       </div>
       <div className="overflow-y-auto flex-1 space-y-4 pr-2">
-        <Accordion type="multiple" defaultValue={["make", "price", "year"]}>
-          <AccordionItem value="make">
-            <AccordionTrigger>Make & Model</AccordionTrigger>
-            <AccordionContent>
-              <SelectFilter
-                title="Make"
-                placeholder="Select make"
-                value={filters.make}
-                options={makes}
-                onValueChange={handleMakeChange}
-              />
+        <Accordion type="multiple" defaultValue={["make", "model", "price", "year"]}>
+          <SelectFilter
+            title="Make & Model"
+            placeholder="Select make"
+            value={filters.make}
+            options={makes}
+            onValueChange={handleMakeChange}
+            accordionValue="make"
+          />
 
-              <SelectFilter
-                title="Model"
-                placeholder="Select model"
-                value={filters.model}
-                options={models}
-                onValueChange={handleModelChange}
-                disabled={!filters.make}
-              />
-            </AccordionContent>
-          </AccordionItem>
+          <SelectFilter
+            title="Model"
+            placeholder="Select model"
+            value={filters.model}
+            options={models}
+            onValueChange={handleModelChange}
+            accordionValue="model"
+            disabled={!filters.make}
+          />
 
           <RangeFilter
             title="Price Range"
