@@ -97,23 +97,23 @@ const CarSpecs = ({ car }: CarSpecsProps) => {
 
         {/* VIN Number */}
         {car.vin && (
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center text-muted-foreground mb-1">
-              <FileText className="h-4 w-4 mr-1" />
-              <span className="text-xs">VIN</span>
+          <div className="bg-gray-50 p-4 rounded-lg flex items-center justify-between">
+            <div>
+              <div className="flex items-center text-muted-foreground mb-1">
+                <FileText className="h-4 w-4 mr-1" />
+                <span className="text-xs">VIN</span>
+              </div>
+              <span className="text-lg font-medium font-mono break-all">{car.vin}</span>
             </div>
-            <div className="flex items-center">
-              <span className="text-lg font-medium font-mono truncate">{car.vin}</span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={copyVinToClipboard}
-                className="h-6 w-6 ml-1 flex-shrink-0"
-                title="Copy VIN"
-              >
-                <Copy className="h-3.5 w-3.5" />
-              </Button>
-            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={copyVinToClipboard}
+              className="h-8 w-8 flex-shrink-0"
+              title="Copy VIN"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
           </div>
         )}
       </div>
@@ -122,4 +122,3 @@ const CarSpecs = ({ car }: CarSpecsProps) => {
 };
 
 export default CarSpecs;
-
