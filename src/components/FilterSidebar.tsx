@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
@@ -188,11 +187,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   };
 
   const formatMileage = (value: number) => {
-    return `${value.toLocaleString()} mi`;
+    return `${value.toLocaleString()} KM`;
   };
   
   const formatPrice = (value: number) => {
-    return `$${value.toLocaleString()}`;
+    return `${value.toLocaleString()} AED`;
   };
 
   return (
