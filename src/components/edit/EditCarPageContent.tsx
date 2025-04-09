@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -12,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import VehicleInfoForm from "@/components/sell/VehicleInfoForm";
 import ContactInfoForm from "@/components/sell/ContactInfoForm";
-import { CarFormSchema } from "@/components/sell/SellCarFormSchema";
+import { sellCarFormSchema } from "@/components/sell/SellCarFormSchema";  // Changed import
 import { submitCarListing } from "@/services/sellCarService";
 
 interface EditCarPageContentProps {
@@ -32,8 +31,8 @@ const EditCarPageContent: React.FC<EditCarPageContentProps> = ({ carId }) => {
     queryFn: () => fetchCarById(carId)
   });
   
-  const form = useForm<z.infer<typeof CarFormSchema>>({
-    resolver: zodResolver(CarFormSchema),
+  const form = useForm<z.infer<typeof sellCarFormSchema>>({  // Changed type
+    resolver: zodResolver(sellCarFormSchema),  // Changed schema
     defaultValues: {
       make: "",
       model: "",
@@ -88,7 +87,7 @@ const EditCarPageContent: React.FC<EditCarPageContentProps> = ({ carId }) => {
     }
   }, [car, form]);
   
-  const onSubmit = async (data: z.infer<typeof CarFormSchema>) => {
+  const onSubmit = async (data: z.infer<typeof sellCarFormSchema>) => {  // Changed type
     if (!user) {
       toast({
         title: "Error",
