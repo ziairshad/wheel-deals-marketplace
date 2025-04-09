@@ -86,8 +86,8 @@ const CarDetailsPage = () => {
             <CarDescription car={car} />
           </div>
           
-          {/* Sidebar Column */}
-          <div className="space-y-6">
+          {/* Sidebar Column - Sticky */}
+          <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
             {/* Contact Information */}
             <ContactInfo car={car} />
             

@@ -66,20 +66,14 @@ const ContactInfo = ({ car }: ContactInfoProps) => {
         
         <Separator />
         
-        <div className="flex items-start">
-          <Phone className="h-5 w-5 text-muted-foreground mt-0.5 mr-3" />
-          <div className="w-full">
-            <div className="text-sm text-muted-foreground">Phone</div>
-            <Button 
-              onClick={handleCallClick} 
-              className="mt-1 w-full"
-              variant="default"
-            >
-              <Phone className="mr-2 h-4 w-4" />
-              Call Seller
-            </Button>
-          </div>
-        </div>
+        <Button 
+          onClick={handleCallClick} 
+          className="w-full"
+          variant="default"
+        >
+          <Phone className="mr-2 h-4 w-4" />
+          Call Seller
+        </Button>
       </div>
 
       {/* Call Dialog */}
