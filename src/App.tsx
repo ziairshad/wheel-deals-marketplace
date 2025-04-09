@@ -15,11 +15,10 @@ import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// Create a client
 const queryClient = new QueryClient();
 
-function App() {
-  return (
+const App = () => (
+  <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
@@ -61,7 +60,7 @@ function App() {
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
-  );
-}
+  </React.StrictMode>
+);
 
 export default App;

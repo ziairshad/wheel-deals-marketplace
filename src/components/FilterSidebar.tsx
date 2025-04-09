@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect } from "react";
+import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
   Accordion,
   AccordionContent,
@@ -25,7 +27,6 @@ import {
 } from "@/utils/filter-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { DualRangeSlider } from "@/components/ui/dual-range-slider";
-import { SearchableSelect } from "@/components/ui/searchable-select";
 
 interface FilterSidebarProps {
   filters: FilterOptions;
@@ -44,35 +45,21 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   const [mileageRange, setMileageRange] = useState<number[]>([0, 200000]);
   const [priceRange, setPriceRange] = useState<number[]>([0, 100000]);
   const [yearRange, setYearRange] = useState<number[]>([1990, 2024]);
-  
-  // Initialize loading state
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchFilterData = async () => {
       try {
-        setIsLoading(true);
         const { data: carListings, error } = await supabase
           .from("car_listings")
           .select("*");
 
         if (error) {
           console.error("Error fetching car listings:", error);
-          setMakes([]);
-          setBodyTypes([]);
-          setLocations([]);
-          setRegionalSpecs([]);
-          setIsLoading(false);
           return;
         }
 
-        if (!carListings || !Array.isArray(carListings)) {
-          console.log("No car listings found or data is not an array.");
-          setMakes([]);
-          setBodyTypes([]);
-          setLocations([]);
-          setRegionalSpecs([]);
-          setIsLoading(false);
+        if (!carListings) {
+          console.log("No car listings found.");
           return;
         }
 
@@ -83,10 +70,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         setBodyTypes(getUniqueValues(allCars, "bodyType"));
         setLocations(getUniqueValues(allCars, "location"));
         setRegionalSpecs(getUniqueValues(allCars, "regionalSpecs"));
-        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching filter data:", error);
-        setIsLoading(false);
       }
     };
 
@@ -96,24 +81,17 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   useEffect(() => {
     const fetchModels = async () => {
       try {
-        if (!filters.make) {
-          setModels([]);
-          return;
-        }
-        
         const { data: carListings, error } = await supabase
           .from("car_listings")
           .select("*");
 
         if (error) {
           console.error("Error fetching car listings:", error);
-          setModels([]);
           return;
         }
 
-        if (!carListings || !Array.isArray(carListings)) {
-          console.log("No car listings found or data is not an array.");
-          setModels([]);
+        if (!carListings) {
+          console.log("No car listings found.");
           return;
         }
 
@@ -123,12 +101,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         setModels(getUniqueModelsByMake(allCars, filters.make));
       } catch (error) {
         console.error("Error fetching models:", error);
-        setModels([]);
       }
     };
 
     fetchModels();
-  }, [filters.make]);
+  }, [filters.make, filters.model]);
 
   const handleMakeChange = (make: string) => {
     onFilterChange({ ...filters, make, model: null });
@@ -218,38 +195,46 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     return `$${value.toLocaleString()}`;
   };
 
-  // Convert the arrays to format required by SearchableSelect
-  // Always provide a fallback empty array for safety
-  const makeOptions = makes?.map(make => ({ label: make, value: make })) || [];
-  const modelOptions = models?.map(model => ({ label: model, value: model })) || [];
-
   return (
     <div className="h-full overflow-auto space-y-4 pr-2">
       <Accordion type="multiple" defaultValue={["make", "model", "price", "year"]}>
         <AccordionItem value="make">
           <AccordionTrigger className="py-3">Make</AccordionTrigger>
           <AccordionContent>
-            <SearchableSelect
-              options={makeOptions}
-              value={filters.make}
-              onChange={handleMakeChange}
-              placeholder="Select make"
-              searchPlaceholder="Search makes..."
-            />
+            <Select onValueChange={handleMakeChange} value={filters.make || ""}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select make" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[200px]">
+                {makes.map((make) => (
+                  <SelectItem key={make} value={make}>
+                    {make}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </AccordionContent>
         </AccordionItem>
 
         <AccordionItem value="model">
           <AccordionTrigger className="py-3">Model</AccordionTrigger>
           <AccordionContent>
-            <SearchableSelect
-              options={modelOptions}
-              value={filters.model}
-              onChange={handleModelChange}
-              placeholder="Select model"
-              searchPlaceholder="Search models..."
+            <Select
+              onValueChange={handleModelChange}
+              value={filters.model || ""}
               disabled={!filters.make}
-            />
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select model" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[200px]">
+                {models.map((model) => (
+                  <SelectItem key={model} value={model}>
+                    {model}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </AccordionContent>
         </AccordionItem>
 
