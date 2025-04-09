@@ -2,7 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from './types';
 
-// Supabase URL and anon key - using hardcoded values as a fallback
+// Supabase URL and anon key
 const supabaseUrl = 'https://quwvbnrtlvdtvelcwqsy.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1d3ZibnJ0bHZkdHZlbGN3cXN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTkwNTMsImV4cCI6MjA1OTczNTA1M30.oQTaRkZ1quaK-el94QhOBXqjLnda8oET1SPyvh0AKk8';
 
