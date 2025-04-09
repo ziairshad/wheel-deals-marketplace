@@ -1,14 +1,22 @@
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Car, Home, Search } from "lucide-react";
+import { Car, Home, Search, UserCircle, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const { user, signOut } = useAuth();
   
   // Update local search state when URL changes
   useEffect(() => {
@@ -76,11 +84,38 @@ const Header = () => {
             <span>Home</span>
           </Link>
           
-          <Link to="/sell">
-            <Button className="bg-car-blue hover:bg-blue-700">
-              Sell Your Car
-            </Button>
-          </Link>
+          {user ? (
+            <>
+              <Link to="/sell">
+                <Button className="bg-car-blue hover:bg-blue-700">
+                  Sell Your Car
+                </Button>
+              </Link>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <UserCircle className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem className="text-muted-foreground">
+                    {user.email}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => signOut()}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <Link to="/auth">
+              <Button className="bg-car-blue hover:bg-blue-700">
+                Sign In
+              </Button>
+            </Link>
+          )}
         </nav>
       </div>
     </header>

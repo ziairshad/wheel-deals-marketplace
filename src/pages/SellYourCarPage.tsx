@@ -6,6 +6,7 @@ import * as z from "zod";
 import { Car, FileUp, Info } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { 
   Form, 
   FormControl, 
@@ -55,7 +56,7 @@ const bodyTypes = [
 const transmissions = ["Automatic", "Manual"];
 const fuelTypes = ["Petrol", "Diesel", "Hybrid", "Electric"];
 
-const SellYourCarPage = () => {
+const SellYourCarPageContent = () => {
   const { toast } = useToast();
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -393,6 +394,15 @@ const SellYourCarPage = () => {
       
       <Footer />
     </div>
+  );
+};
+
+// Wrap the component with ProtectedRoute
+const SellYourCarPage = () => {
+  return (
+    <ProtectedRoute>
+      <SellYourCarPageContent />
+    </ProtectedRoute>
   );
 };
 

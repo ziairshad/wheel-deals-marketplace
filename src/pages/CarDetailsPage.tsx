@@ -8,6 +8,8 @@ import { Separator } from "@/components/ui/separator";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CarGallery from "@/components/CarGallery";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 import { cars, formatPrice, formatMileage } from "@/data/cars";
 import { cn } from "@/lib/utils";
@@ -15,6 +17,7 @@ import { cn } from "@/lib/utils";
 const CarDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const car = cars.find((c) => c.id === id);
   
@@ -30,6 +33,17 @@ const CarDetailsPage = () => {
   if (!car) {
     return null;
   }
+
+  const handleContactSeller = () => {
+    if (!user) {
+      toast.error("Please sign in to contact the seller");
+      navigate("/auth", { state: { from: `/car/${id}` } });
+      return;
+    }
+    
+    // Here would be the actual contact seller functionality
+    toast.success("Contact request sent to seller!");
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -165,10 +179,17 @@ const CarDetailsPage = () => {
               </div>
               
               <div className="space-y-3">
-                <Button className="w-full bg-car-blue hover:bg-blue-700">
+                <Button 
+                  className="w-full bg-car-blue hover:bg-blue-700"
+                  onClick={handleContactSeller}
+                >
                   Call Seller
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleContactSeller}
+                >
                   Email Seller
                 </Button>
               </div>
