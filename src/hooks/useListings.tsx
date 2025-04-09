@@ -81,7 +81,15 @@ export const useListings = () => {
   };
 
   const closeDeleteDialog = () => {
-    setShowDeleteDialog(false);
+    // Only allow closing if not currently deleting
+    if (!isDeleting) {
+      setShowDeleteDialog(false);
+      
+      // Reset the listing ID after the dialog animation completes
+      setTimeout(() => {
+        setListingToDelete(null);
+      }, 300);
+    }
   };
 
   const handleDeleteListing = async () => {
@@ -92,7 +100,7 @@ export const useListings = () => {
       
       await deleteCarListing(listingToDelete);
       
-      // Update state first before closing dialog
+      // Update state to remove the deleted listing
       setListings(prevListings => 
         prevListings.filter(listing => listing.id !== listingToDelete)
       );
@@ -103,18 +111,19 @@ export const useListings = () => {
         variant: "default"
       });
       
-      // Close the dialog first
-      closeDeleteDialog();
-      
-      // Clear the ID and reset deleting state after a slight delay
+      // Close the dialog first with a slight delay to allow the UI to update
       setTimeout(() => {
-        setListingToDelete(null);
-        setIsDeleting(false);
-      }, 300);
+        setShowDeleteDialog(false);
+        
+        // Reset states after the dialog animation completes
+        setTimeout(() => {
+          setListingToDelete(null);
+          setIsDeleting(false);
+        }, 300);
+      }, 100);
       
     } catch (error) {
       console.error("Error deleting listing:", error);
-      setIsDeleting(false);
       
       toast({
         title: "Error",
@@ -122,7 +131,8 @@ export const useListings = () => {
         variant: "destructive"
       });
       
-      closeDeleteDialog();
+      // Reset the deleting state so user can try again
+      setIsDeleting(false);
     }
   };
 
