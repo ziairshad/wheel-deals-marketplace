@@ -33,9 +33,14 @@ const fuelTypes = ["Petrol", "Diesel", "Hybrid", "Electric"];
 interface VehicleInfoFormProps {
   images: File[];
   setImages: React.Dispatch<React.SetStateAction<File[]>>;
+  existingImages?: string[];
 }
 
-const VehicleInfoForm: React.FC<VehicleInfoFormProps> = ({ images, setImages }) => {
+const VehicleInfoForm: React.FC<VehicleInfoFormProps> = ({ 
+  images, 
+  setImages,
+  existingImages = []
+}) => {
   const form = useFormContext();
 
   return (
@@ -258,7 +263,7 @@ const VehicleInfoForm: React.FC<VehicleInfoFormProps> = ({ images, setImages }) 
         />
       </div>
       
-      <PhotoUploader images={images} setImages={setImages} />
+      <PhotoUploader images={images} setImages={setImages} existingImages={existingImages} />
     </div>
   );
 };

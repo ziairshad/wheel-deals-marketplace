@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Car, ChevronLeft, AlertCircle, Plus, Edit, Trash, Check } from "lucide-react";
+import { Car, ChevronLeft, AlertCircle, Plus, Check, MoreVertical } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,13 @@ import { cn } from "@/lib/utils";
 import { CarListingRow } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { fetchMyListings, updateCarListingStatus, deleteCarListing } from "@/services/sellCarService";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -188,15 +195,15 @@ const MyListingsPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {listings.map((listing) => (
               <div key={listing.id} className="border rounded-lg overflow-hidden shadow-sm">
-                <div className="relative aspect-auto h-32 overflow-hidden">
+                <div className="relative">
                   {listing.images && listing.images.length > 0 ? (
                     <img 
                       src={listing.images[0]} 
                       alt={`${listing.year} ${listing.make} ${listing.model}`} 
-                      className="h-full w-full object-cover"
+                      className="h-48 w-full object-cover"
                     />
                   ) : (
-                    <div className="h-full w-full bg-gray-200 flex items-center justify-center">
+                    <div className="h-48 w-full bg-gray-200 flex items-center justify-center">
                       <Car className="h-8 w-8 text-gray-400" />
                     </div>
                   )}
@@ -210,85 +217,81 @@ const MyListingsPage = () => {
                   </Badge>
                 </div>
                 
-                <div className="p-3">
+                <div className="p-4">
                   <div className="flex justify-between items-start">
-                    <h3 className="font-medium text-sm truncate">
+                    <h3 className="font-medium truncate">
                       {listing.year} {listing.make} {listing.model}
                     </h3>
-                    <span className="font-bold text-car-blue text-sm">
+                    <span className="font-bold text-car-blue">
                       {formatPrice(listing.price)}
                     </span>
                   </div>
                   
-                  <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                     <span>{formatMileage(listing.mileage)}</span>
                     <span className="text-xs">•</span>
                     <span className="truncate">{listing.location}</span>
                   </div>
                   
-                  <div className="mt-2 flex items-center justify-between">
-                    <div className="flex space-x-1">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="h-7 px-2 text-xs"
-                        onClick={() => navigate(`/car/${listing.id}`)}
-                      >
-                        View
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="h-7 px-2 text-xs" 
-                        onClick={() => navigate(`/sell?edit=${listing.id}`)}
-                      >
-                        <Edit className="h-3 w-3 mr-1" />
-                        Edit
-                      </Button>
-                    </div>
-                    <div className="flex space-x-1">
-                      {listing.status !== "sold" && (
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="h-7 px-2 text-xs bg-green-50 text-green-600 hover:text-green-700 hover:bg-green-100 border-green-200"
-                          onClick={() => handleStatusChange(listing.id, "sold")}
-                        >
-                          <Check className="h-3 w-3 mr-1" />
-                          Sold
+                  <div className="mt-4 flex items-center justify-between">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="h-9 text-sm"
+                      onClick={() => navigate(`/car/${listing.id}`)}
+                    >
+                      View Details
+                    </Button>
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="h-4 w-4" />
                         </Button>
-                      )}
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="h-7 px-2 text-xs bg-red-50 text-red-600 hover:text-red-700 hover:bg-red-100 border-red-200"
-                            onClick={() => setListingToDelete(listing.id)}
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => navigate(`/sell?edit=${listing.id}`)}>
+                          Edit Listing
+                        </DropdownMenuItem>
+                        {listing.status !== "sold" && (
+                          <DropdownMenuItem 
+                            onClick={() => handleStatusChange(listing.id, "sold")}
+                            className="text-green-600"
                           >
-                            <Trash className="h-3 w-3 mr-1" />
-                            Delete
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will permanently delete this car listing. This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel onClick={() => setListingToDelete(null)}>Cancel</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => handleDeleteListing(listing.id)}
-                              className="bg-red-600 hover:bg-red-700"
+                            <Check className="h-4 w-4 mr-2" />
+                            Mark as Sold
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                              onSelect={(e) => e.preventDefault()}
+                              className="text-red-600"
                             >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                              Delete Listing
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete this car listing. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel onClick={() => setListingToDelete(null)}>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDeleteListing(listing.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </div>

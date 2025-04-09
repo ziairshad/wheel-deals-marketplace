@@ -2,168 +2,145 @@
 import { CarFormData } from "@/types/car";
 import { CarListingRow, supabase } from "@/integrations/supabase/client";
 
-export async function submitCarListing(formData: CarFormData, userId: string, images: File[]) {
+export const submitCarListing = async (
+  formData: CarFormData,
+  userId: string,
+  images: File[]
+) => {
   try {
-    // Prepare the car listing data
-    const carListingData = {
+    // Upload images to storage
+    const imageUrls = await Promise.all(
+      images.map(async (image) => {
+        const fileExt = image.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+        const filePath = `${userId}/${fileName}`;
+        
+        // Upload file
+        const { error: uploadError } = await supabase.storage
+          .from('car_images')
+          .upload(filePath, image);
+          
+        if (uploadError) throw uploadError;
+        
+        // Get public URL
+        const { data } = supabase.storage
+          .from('car_images')
+          .getPublicUrl(filePath);
+          
+        return data.publicUrl;
+      })
+    );
+    
+    // Prepare listing data
+    const listingData = {
       user_id: userId,
       make: formData.make,
       model: formData.model,
-      year: parseInt(formData.year),
-      price: parseInt(formData.price),
-      mileage: parseInt(formData.mileage),
+      year: parseInt(formData.year as string),
+      price: parseInt(formData.price as string),
+      mileage: parseInt(formData.mileage as string),
       body_type: formData.bodyType,
       transmission: formData.transmission,
       fuel_type: formData.fuelType,
-      exterior_color: formData.color,
+      color: formData.color,
       location: formData.location,
       description: formData.description,
       contact_name: formData.contactName,
       contact_phone: formData.contactPhone,
       contact_email: formData.contactEmail,
-      status: 'available', // Set status to 'available' explicitly
       vin: formData.vin,
+      images: imageUrls,
+      status: 'available',
+      created_at: new Date(),
     };
-
-    // Insert car listing into database using Supabase client
-    const { data: carData, error: insertError } = await supabase
-      .from('car_listings')
-      .insert(carListingData)
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error("Error inserting car listing:", insertError);
-      throw new Error('Failed to submit car listing');
-    }
-
-    const carId = carData.id;
-    const imageUrls = [];
-
-    // Upload images to Supabase Storage
-    for (let i = 0; i < images.length; i++) {
-      const file = images[i];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${carId}/${i}-${Date.now()}.${fileExt}`;
-      
-      // Check if bucket exists first
-      const { data: buckets } = await supabase.storage.listBuckets();
-      
-      let bucketExists = false;
-      if (buckets) {
-        bucketExists = buckets.some(bucket => bucket.name === 'car_images');
-      }
-      
-      // If bucket doesn't exist, try to create it
-      if (!bucketExists) {
-        try {
-          await supabase.storage.createBucket('car_images', {
-            public: true,
-            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'],
-            fileSizeLimit: 5242880, // 5MB
-          });
-        } catch (error) {
-          console.error("Error creating bucket:", error);
-          // Continue anyway, as the bucket might exist despite the error
-        }
-      }
-
-      try {
-        // Upload the file to Supabase Storage
-        const { error: uploadError, data: uploadData } = await supabase
-          .storage
-          .from('car_images')
-          .upload(fileName, file);
-
-        if (uploadError) {
-          console.error("Error uploading image:", uploadError);
-          continue; // Try to upload the next image
-        }
-
-        // Get the public URL for the uploaded image
-        const { data: publicUrlData } = supabase
-          .storage
-          .from('car_images')
-          .getPublicUrl(fileName);
-
-        if (publicUrlData) {
-          imageUrls.push(publicUrlData.publicUrl);
-        }
-      } catch (error) {
-        console.error("Error in image upload process:", error);
-      }
-    }
-
-    // Update car listing with image URLs if we have any
-    if (imageUrls.length > 0) {
-      const { error: updateError } = await supabase
+    
+    // Check if we're editing (formData has an id)
+    if (formData.id) {
+      const { error } = await supabase
         .from('car_listings')
-        .update({ images: imageUrls })
-        .eq('id', carId);
-
-      if (updateError) {
-        console.error("Error updating car listing with images:", updateError);
-        // We'll continue anyway since the listing was created
-      }
+        .update(listingData)
+        .eq('id', formData.id);
+        
+      if (error) throw error;
+      
+      return formData.id;
+    } else {
+      // Insert new listing
+      const { data, error } = await supabase
+        .from('car_listings')
+        .insert(listingData)
+        .select('id')
+        .single();
+        
+      if (error) throw error;
+      
+      return data.id;
     }
-
-    return { success: true, carId };
   } catch (error) {
-    console.error("Error submitting listing:", error);
+    console.error('Error submitting car listing:', error);
     throw error;
   }
-}
+};
 
-export async function fetchMyListings(userId: string): Promise<CarListingRow[]> {
+export const fetchMyListings = async (userId: string): Promise<CarListingRow[]> => {
   try {
+    // Fetch all listings for the current user
     const { data, error } = await supabase
       .from('car_listings')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
+      
+    if (error) throw error;
     
-    if (error) {
-      console.error("Error fetching listings:", error);
-      throw new Error('Failed to fetch listings');
-    }
-    
-    return data || [];
+    return data as CarListingRow[];
   } catch (error) {
-    console.error("Error fetching listings:", error);
+    console.error('Error fetching user listings:', error);
     throw error;
   }
-}
+};
 
-export async function updateCarListingStatus(id: string, status: string): Promise<void> {
+export const fetchCarListingById = async (id: string): Promise<CarListingRow | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('car_listings')
+      .select('*')
+      .eq('id', id)
+      .single();
+      
+    if (error) throw error;
+    
+    return data as CarListingRow;
+  } catch (error) {
+    console.error('Error fetching car listing:', error);
+    throw error;
+  }
+};
+
+export const updateCarListingStatus = async (id: string, status: string): Promise<void> => {
   try {
     const { error } = await supabase
       .from('car_listings')
       .update({ status })
       .eq('id', id);
-    
-    if (error) {
-      console.error("Error updating car listing status:", error);
-      throw new Error('Failed to update car listing status');
-    }
+      
+    if (error) throw error;
   } catch (error) {
-    console.error("Error updating car listing status:", error);
+    console.error('Error updating car listing status:', error);
     throw error;
   }
-}
+};
 
-export async function deleteCarListing(id: string): Promise<void> {
+export const deleteCarListing = async (id: string): Promise<void> => {
   try {
     const { error } = await supabase
       .from('car_listings')
       .delete()
       .eq('id', id);
-    
-    if (error) {
-      console.error("Error deleting car listing:", error);
-      throw new Error('Failed to delete car listing');
-    }
+      
+    if (error) throw error;
   } catch (error) {
-    console.error("Error deleting car listing:", error);
+    console.error('Error deleting car listing:', error);
     throw error;
   }
-}
+};
