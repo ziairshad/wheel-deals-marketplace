@@ -36,6 +36,14 @@ const App = () => (
                 } 
               />
               <Route 
+                path="/edit/:id" 
+                element={
+                  <ProtectedRoute requirePhoneVerification={true}>
+                    <SellYourCarPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/my-listings" 
                 element={
                   <ProtectedRoute>

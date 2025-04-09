@@ -39,3 +39,24 @@ export interface CarListing {
   vin?: string;
   user_id?: string;
 }
+
+// Helper function to convert from API format to form format
+export function convertToFormData(carListing: CarListing): CarFormData {
+  return {
+    make: carListing.make || '',
+    model: carListing.model || '',
+    year: carListing.year?.toString() || '',
+    price: carListing.price?.toString() || '',
+    mileage: carListing.mileage?.toString() || '',
+    bodyType: carListing.body_type || '',
+    transmission: carListing.transmission || '',
+    fuelType: carListing.fuel_type || '',
+    color: carListing.exterior_color || '',
+    location: carListing.location || '',
+    description: carListing.description || '',
+    contactName: carListing.contact_name || '',
+    contactPhone: carListing.contact_phone || '',
+    contactEmail: carListing.contact_email || '',
+    vin: carListing.vin || '',
+  };
+}
