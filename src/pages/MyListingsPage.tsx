@@ -70,13 +70,16 @@ const MyListingsPage = () => {
       
       <Footer />
 
-      <DeleteListingDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        onClose={closeDeleteDialog}
-        onConfirm={handleDeleteListing}
-        isDeleting={isDeleting}
-      />
+      {/* Only render dialog when needed */}
+      {showDeleteDialog && (
+        <DeleteListingDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          onClose={closeDeleteDialog}
+          onConfirm={handleDeleteListing}
+          isDeleting={isDeleting}
+        />
+      )}
     </div>
   );
 };
