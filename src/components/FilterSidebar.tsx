@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
@@ -24,6 +25,7 @@ import {
   getUniqueModelsByMake,
 } from "@/utils/filter-utils";
 import { supabase } from "@/integrations/supabase/client";
+import { DualRangeSlider } from "@/components/ui/dual-range-slider";
 
 interface FilterSidebarProps {
   filters: FilterOptions;
@@ -184,9 +186,17 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     setYearRange([1990, 2024]);
   };
 
+  const formatMileage = (value: number) => {
+    return `${value.toLocaleString()} mi`;
+  };
+  
+  const formatPrice = (value: number) => {
+    return `$${value.toLocaleString()}`;
+  };
+
   return (
     <div className="space-y-4">
-      <Accordion type="multiple" collapsible>
+      <Accordion type="multiple" defaultValue={["make", "model", "price", "year"]}>
         <AccordionItem value="make">
           <AccordionTrigger>Make</AccordionTrigger>
           <AccordionContent>
@@ -230,42 +240,31 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         <AccordionItem value="price">
           <AccordionTrigger>Price Range</AccordionTrigger>
           <AccordionContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <div>${priceRange[0]}</div>
-                <div>${priceRange[1]}</div>
-              </div>
-              <Slider
-                min={0}
-                max={100000}
-                step={1000}
-                defaultValue={[0, 100000]}
-                value={priceRange}
-                onValueChange={handlePriceRangeChange}
-                aria-label="price-range"
-              />
-            </div>
+            <DualRangeSlider
+              min={0}
+              max={100000}
+              step={1000}
+              defaultValue={[0, 100000]}
+              value={priceRange}
+              onValueChange={handlePriceRangeChange}
+              formatValue={formatPrice}
+              aria-label="price-range"
+            />
           </AccordionContent>
         </AccordionItem>
 
         <AccordionItem value="year">
           <AccordionTrigger>Year Range</AccordionTrigger>
           <AccordionContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <div>{yearRange[0]}</div>
-                <div>{yearRange[1]}</div>
-              </div>
-              <Slider
-                min={1990}
-                max={2024}
-                step={1}
-                defaultValue={[1990, 2024]}
-                value={yearRange}
-                onValueChange={handleYearRangeChange}
-                aria-label="year-range"
-              />
-            </div>
+            <DualRangeSlider
+              min={1990}
+              max={2024}
+              step={1}
+              defaultValue={[1990, 2024]}
+              value={yearRange}
+              onValueChange={handleYearRangeChange}
+              aria-label="year-range"
+            />
           </AccordionContent>
         </AccordionItem>
 
@@ -371,21 +370,16 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         <AccordionItem value="mileage">
           <AccordionTrigger>Mileage Range</AccordionTrigger>
           <AccordionContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <div>{mileageRange[0].toLocaleString()} mi</div>
-                <div>{mileageRange[1].toLocaleString()} mi</div>
-              </div>
-              <Slider
-                min={0}
-                max={200000}
-                step={1000}
-                defaultValue={[0, 200000]}
-                value={mileageRange}
-                onValueChange={handleMileageRangeChange}
-                aria-label="mileage-range"
-              />
-            </div>
+            <DualRangeSlider
+              min={0}
+              max={200000}
+              step={1000}
+              defaultValue={[0, 200000]}
+              value={mileageRange}
+              onValueChange={handleMileageRangeChange}
+              formatValue={formatMileage}
+              aria-label="mileage-range"
+            />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
