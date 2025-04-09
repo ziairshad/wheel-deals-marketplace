@@ -12,8 +12,8 @@ interface CarHeaderProps {
 const CarHeader = ({ car }: CarHeaderProps) => {
   const carTitle = `${car.year} ${car.make} ${car.model}`;
   
-  // Format the date to a more readable format
-  const formattedDate = format(new Date(car.created_at), "MMMM d, yyyy");
+  // Format the date to DD MMMM YYYY format
+  const formattedDate = format(new Date(car.created_at), "dd MMMM yyyy");
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

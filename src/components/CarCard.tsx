@@ -32,7 +32,7 @@ const CarCard = ({ car }: CarCardProps) => {
     ? (car.images || []) 
     : car.images;
   
-  // Format the created date if it exists with the new format
+  // Format the created date if it exists with the DD MMMM YYYY format
   const createdAt = isCarListingRow && car.created_at 
     ? format(new Date(car.created_at), "dd MMMM yyyy")
     : null;

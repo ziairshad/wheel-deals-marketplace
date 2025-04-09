@@ -5,7 +5,6 @@ import {
   Gauge, 
   Fuel, 
   RefreshCw,
-  Check,
   Copy,
   Globe,
   FileText
@@ -87,44 +86,31 @@ const CarSpecs = ({ car }: CarSpecsProps) => {
       {/* Second row of specifications including VIN */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Regional Specs */}
-        {car.regional_specs && (
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center text-muted-foreground mb-1">
-              <Globe className="h-4 w-4 mr-1" />
-              <span className="text-xs">Regional Specs</span>
-            </div>
-            <span className="text-lg font-medium">{car.regional_specs}</span>
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="flex items-center text-muted-foreground mb-1">
+            <Globe className="h-4 w-4 mr-1" />
+            <span className="text-xs">Regional Specs</span>
           </div>
-        )}
+          <span className="text-lg font-medium">{car.regional_specs || 'Not specified'}</span>
+        </div>
 
         {/* VIN Number */}
         {car.vin && (
           <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex justify-between items-center">
-              <div>
-                <div className="flex items-center text-muted-foreground mb-1">
-                  <FileText className="h-4 w-4 mr-1" />
-                  <span className="text-xs">VIN</span>
-                </div>
-                <span className="text-lg font-medium font-mono">{car.vin}</span>
-              </div>
+            <div className="flex items-center text-muted-foreground mb-1">
+              <FileText className="h-4 w-4 mr-1" />
+              <span className="text-xs">VIN</span>
+            </div>
+            <div className="flex items-center">
+              <span className="text-lg font-medium font-mono">{car.vin}</span>
               <Button 
-                variant="outline" 
-                size="sm" 
+                variant="ghost" 
+                size="icon" 
                 onClick={copyVinToClipboard}
-                className="h-8 gap-1"
+                className="h-8 w-8 ml-2"
+                title="Copy VIN"
               >
-                {copySuccess ? (
-                  <>
-                    <Check className="h-4 w-4" />
-                    <span>Copied</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-4 w-4" />
-                    <span>Copy</span>
-                  </>
-                )}
+                <Copy className="h-4 w-4" />
               </Button>
             </div>
           </div>
