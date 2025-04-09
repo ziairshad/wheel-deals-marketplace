@@ -39,6 +39,7 @@ const MyListingsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [listingToDelete, setListingToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const getListings = async () => {
     try {
@@ -101,15 +102,20 @@ const MyListingsPage = () => {
 
   const closeDeleteDialog = () => {
     setShowDeleteDialog(false);
-    // Small delay to ensure the dialog is fully closed before clearing the ID
-    setTimeout(() => setListingToDelete(null), 200);
   };
 
   const handleDeleteListing = async () => {
-    if (!listingToDelete) return;
+    if (!listingToDelete || isDeleting) return;
     
     try {
+      setIsDeleting(true);
+      
       await deleteCarListing(listingToDelete);
+      
+      // Update state first before closing dialog
+      setListings(prevListings => 
+        prevListings.filter(listing => listing.id !== listingToDelete)
+      );
       
       toast({
         title: "Success",
@@ -117,20 +123,25 @@ const MyListingsPage = () => {
         variant: "default"
       });
       
-      // Remove the listing from our state
-      setListings(prevListings => 
-        prevListings.filter(listing => listing.id !== listingToDelete)
-      );
-      
-      // Close the dialog
+      // Close the dialog first
       closeDeleteDialog();
+      
+      // Clear the ID and reset deleting state after a slight delay
+      setTimeout(() => {
+        setListingToDelete(null);
+        setIsDeleting(false);
+      }, 300);
+      
     } catch (error) {
       console.error("Error deleting listing:", error);
+      setIsDeleting(false);
+      
       toast({
         title: "Error",
         description: "Failed to delete the listing.",
         variant: "destructive"
       });
+      
       closeDeleteDialog();
     }
   };
@@ -300,7 +311,7 @@ const MyListingsPage = () => {
       
       <Footer />
 
-      {/* Separate Alert Dialog outside of the map loop */}
+      {/* Alert Dialog for deletion confirmation */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -310,12 +321,18 @@ const MyListingsPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel 
+              onClick={closeDeleteDialog}
+              disabled={isDeleting}
+            >
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeleteListing}
               className="bg-red-600 hover:bg-red-700"
+              disabled={isDeleting}
             >
-              Delete
+              {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
