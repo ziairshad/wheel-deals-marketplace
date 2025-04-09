@@ -75,19 +75,24 @@ export const useListings = () => {
     }
   };
 
+  // Clean implementation of opening delete dialog
   const openDeleteDialog = (id: string) => {
+    if (isDeleting) return; // Prevent multiple dialogs
     setListingToDelete(id);
     setShowDeleteDialog(true);
   };
 
+  // Safe implementation of closing dialog
   const closeDeleteDialog = () => {
-    // Only allow closing if not currently deleting
+    if (isDeleting) return;
+    setShowDeleteDialog(false);
+  };
+
+  // This function runs when the dialog is fully closed (animation complete)
+  const resetDeleteState = () => {
+    // Only reset the ID if we're not in the process of deleting
     if (!isDeleting) {
-      setShowDeleteDialog(false);
-      // Use a small delay before clearing the ID to prevent UI issues
-      setTimeout(() => {
-        setListingToDelete(null);
-      }, 100);
+      setListingToDelete(null);
     }
   };
 
@@ -97,10 +102,10 @@ export const useListings = () => {
     try {
       setIsDeleting(true);
       
-      // Store the ID before clearing it
+      // Store the ID before any other operations
       const deletedId = listingToDelete;
       
-      // Perform the actual deletion
+      // Perform the deletion
       await deleteCarListing(deletedId);
       
       // Update local state to remove the deleted listing
@@ -122,13 +127,16 @@ export const useListings = () => {
         variant: "destructive"
       });
     } finally {
-      // Always reset all states, regardless of success or failure
-      setIsDeleting(false);
+      // First close the dialog
       setShowDeleteDialog(false);
-      // Short timeout to ensure UI updates properly
+      
+      // Then reset deleting state
+      setIsDeleting(false);
+      
+      // Finally clear the ID after a short delay
       setTimeout(() => {
         setListingToDelete(null);
-      }, 100);
+      }, 150);
     }
   };
 
@@ -142,6 +150,7 @@ export const useListings = () => {
     openDeleteDialog,
     closeDeleteDialog,
     handleDeleteListing,
-    setShowDeleteDialog
+    setShowDeleteDialog,
+    resetDeleteState
   };
 };

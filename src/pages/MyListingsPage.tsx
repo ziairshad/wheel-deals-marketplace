@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Car, ChevronLeft, Plus } from "lucide-react";
 import Header from "@/components/Header";
@@ -22,8 +22,16 @@ const MyListingsPage = () => {
     openDeleteDialog,
     closeDeleteDialog,
     handleDeleteListing,
-    setShowDeleteDialog
+    setShowDeleteDialog,
+    resetDeleteState
   } = useListings();
+
+  // Ensure dialog state is reset when component unmounts
+  useEffect(() => {
+    return () => {
+      resetDeleteState();
+    };
+  }, [resetDeleteState]);
 
   return (
     <div className="min-h-screen flex flex-col">

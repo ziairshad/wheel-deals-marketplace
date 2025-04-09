@@ -27,15 +27,22 @@ const DeleteListingDialog = ({
   onConfirm,
   isDeleting,
 }: DeleteListingDialogProps) => {
-  // Handle confirm separately to avoid state management issues
-  const handleConfirm = () => {
+  // Simple click handler to prevent event propagation issues
+  const handleConfirm = (e: React.MouseEvent) => {
+    e.preventDefault();
     onConfirm();
+  };
+
+  // Force dialog to close properly
+  const handleOpenChange = (newOpen: boolean) => {
+    if (isDeleting) return; // Don't allow closing while deleting
+    onOpenChange(newOpen);
   };
 
   return (
     <AlertDialog 
       open={open} 
-      onOpenChange={isDeleting ? undefined : onOpenChange}
+      onOpenChange={handleOpenChange}
     >
       <AlertDialogContent>
         <AlertDialogHeader>
