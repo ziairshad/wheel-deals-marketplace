@@ -112,6 +112,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName: string, phoneNumber: string) => {
     try {
+      // Check if phone number already exists in profiles
+      const { data: existingUserWithPhone, error: phoneCheckError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('phone_number', phoneNumber)
+        .maybeSingle();
+
+      if (phoneCheckError) {
+        console.error("Error checking phone number:", phoneCheckError);
+      }
+
+      if (existingUserWithPhone) {
+        toast.error("This phone number is already registered. Please use a different phone number.");
+        throw new Error("Phone number already in use");
+      }
+
+      // Try to sign up the user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -123,14 +140,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // If error includes "already registered", it means the email is already in use
+        if (error.message.includes("already registered")) {
+          toast.error("This email is already registered. Please use a different email address.");
+        } else {
+          toast.error(error.message || "Failed to sign up.");
+        }
+        throw error;
+      }
       
       toast.success("Account created! Please check your email to verify your account.");
       
       // Return user ID for phone verification
       return data?.user?.id;
     } catch (error: any) {
-      toast.error(error.message || "Failed to sign up.");
       throw error;
     }
   };
