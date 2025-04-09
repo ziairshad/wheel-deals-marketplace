@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Car, Home, Search, LogOut, ClipboardList } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -149,9 +149,9 @@ const Header = () => {
               </DropdownMenu>
             </>
           ) : (
-            <Link to="/auth">
+            <Link to="/auth" state={{ from: location, action: 'sell' }}>
               <Button>
-                Sign In
+                {isMobile ? "Sell" : "Sell Your Car"}
               </Button>
             </Link>
           )}
