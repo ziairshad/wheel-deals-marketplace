@@ -28,7 +28,25 @@ const Header = () => {
       searchParams.delete("search");
     }
     
-    navigate(`/?${searchParams.toString()}`);
+    // Force a navigation even if the URL appears the same
+    const searchString = searchParams.toString();
+    const targetUrl = searchString ? `/?${searchString}` : '/';
+    
+    // Using replace to avoid building up history stack with search operations
+    navigate(targetUrl, { replace: true });
+  };
+  
+  // Handle input change and clear search immediately if empty
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setSearchQuery(newValue);
+    
+    // If the field is cleared, immediately update the URL
+    if (newValue === "" && searchQuery !== "") {
+      const searchParams = new URLSearchParams(location.search);
+      searchParams.delete("search");
+      navigate(`/?${searchParams.toString()}`, { replace: true });
+    }
   };
   
   return (
@@ -47,7 +65,7 @@ const Header = () => {
               placeholder="Search makes, models, or keywords..."
               className="w-full bg-background pl-8 pr-4"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchInputChange}
             />
           </form>
         </div>

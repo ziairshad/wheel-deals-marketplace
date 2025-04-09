@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -30,6 +31,8 @@ const HomePage = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const searchQuery = searchParams.get("search");
+    
+    console.log("URL search changed:", searchQuery);
     
     // Update filters with search query from URL or clear it
     setFilters(prev => ({ ...prev, search: searchQuery || null }));
