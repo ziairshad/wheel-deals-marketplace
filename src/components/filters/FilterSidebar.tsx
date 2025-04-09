@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -265,7 +264,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       <div className="overflow-y-auto flex-1 space-y-4 pr-2">
         <Accordion type="multiple" defaultValue={["make", "model", "price", "year"]}>
           <SelectFilter
-            title="Make"
+            title="Make & Model"
             placeholder="Select make"
             value={filters.make}
             options={makes}
