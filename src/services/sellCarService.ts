@@ -1,4 +1,3 @@
-
 import { CarFormData } from "@/types/car";
 import { CarListingRow, supabase } from "@/integrations/supabase/client";
 
@@ -94,34 +93,18 @@ export async function submitCarListing(formData: CarFormData, userId: string, im
         const fileExt = file.name.split('.').pop();
         const fileName = `${carId}/${i}-${Date.now()}.${fileExt}`;
         
-        // Check if bucket exists first
-        const { data: buckets } = await supabase.storage.listBuckets();
+        // The bucket was already created via SQL migration, so we can directly upload
+        console.log(`Uploading image ${i+1}/${images.length} to car_images/${fileName}`);
         
-        let bucketExists = false;
-        if (buckets) {
-          bucketExists = buckets.some(bucket => bucket.name === 'car_images');
-        }
-        
-        // If bucket doesn't exist, try to create it
-        if (!bucketExists) {
-          try {
-            await supabase.storage.createBucket('car_images', {
-              public: true,
-              allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'],
-              fileSizeLimit: 5242880, // 5MB
-            });
-          } catch (error) {
-            console.error("Error creating bucket:", error);
-            // Continue anyway, as the bucket might exist despite the error
-          }
-        }
-
         try {
           // Upload the file to Supabase Storage
           const { error: uploadError, data: uploadData } = await supabase
             .storage
             .from('car_images')
-            .upload(fileName, file);
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
 
           if (uploadError) {
             console.error("Error uploading image:", uploadError);
@@ -135,6 +118,7 @@ export async function submitCarListing(formData: CarFormData, userId: string, im
             .getPublicUrl(fileName);
 
           if (publicUrlData) {
+            console.log("Image uploaded, public URL:", publicUrlData.publicUrl);
             allImageUrls.push(publicUrlData.publicUrl);
           }
         } catch (error) {
@@ -144,7 +128,6 @@ export async function submitCarListing(formData: CarFormData, userId: string, im
     }
 
     // Update car listing with all image URLs (existing + new), even if it's an empty array
-    // This is the key fix - we update the images field regardless of whether there are images or not
     console.log("Updating car with images:", { carId, imageUrlsCount: allImageUrls.length });
     
     const { error: updateError } = await supabase
