@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Check, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Car } from "lucide-react";
@@ -9,11 +9,11 @@ import { CarListingRow } from "@/integrations/supabase/client";
 import { formatPrice, formatMileage } from "@/data/cars";
 import { cn } from "@/lib/utils";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ListingCardProps {
   listing: CarListingRow;
@@ -42,6 +42,20 @@ const ListingCard = ({ listing, onStatusChange, onDeleteClick }: ListingCardProp
     e.preventDefault();
     e.stopPropagation();
     onDeleteClick(id);
+  };
+
+  // Handler for edit that prevents event propagation
+  const handleEditClick = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/edit/${id}`);
+  };
+
+  // Handler for mark as sold that prevents event propagation
+  const handleMarkAsSoldClick = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onStatusChange(id, "sold");
   };
 
   return (
@@ -94,45 +108,59 @@ const ListingCard = ({ listing, onStatusChange, onDeleteClick }: ListingCardProp
             View Details
           </Button>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem 
-                onClick={() => navigate(`/edit/${listing.id}`)}
-                className="flex items-center"
-              >
-                <Pencil className="h-4 w-4 mr-2" />
-                Edit
-              </DropdownMenuItem>
+          <TooltipProvider>
+            <div className="flex items-center gap-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-blue-600"
+                    onClick={(e) => handleEditClick(e, listing.id)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit Listing</p>
+                </TooltipContent>
+              </Tooltip>
               
               {listing.status !== "sold" && (
-                <DropdownMenuItem 
-                  onClick={() => onStatusChange(listing.id, "sold")}
-                  className="text-green-600"
-                >
-                  <Check className="h-4 w-4 mr-2" />
-                  Mark as Sold
-                </DropdownMenuItem>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-green-600"
+                      onClick={(e) => handleMarkAsSoldClick(e, listing.id)}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Mark as Sold</p>
+                  </TooltipContent>
+                </Tooltip>
               )}
               
-              <DropdownMenuItem 
-                className="text-red-600"
-                onClick={(e) => handleDeleteClick(e, listing.id)}
-                onSelect={(e) => e.preventDefault()}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-red-600"
+                    onClick={(e) => handleDeleteClick(e, listing.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete Listing</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
         </div>
       </div>
     </div>
