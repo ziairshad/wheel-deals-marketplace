@@ -133,3 +133,37 @@ export async function fetchMyListings(userId: string): Promise<CarListingRow[]> 
     throw error;
   }
 }
+
+export async function updateCarListingStatus(id: string, status: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('car_listings')
+      .update({ status })
+      .eq('id', id);
+    
+    if (error) {
+      console.error("Error updating car listing status:", error);
+      throw new Error('Failed to update car listing status');
+    }
+  } catch (error) {
+    console.error("Error updating car listing status:", error);
+    throw error;
+  }
+}
+
+export async function deleteCarListing(id: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('car_listings')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error("Error deleting car listing:", error);
+      throw new Error('Failed to delete car listing');
+    }
+  } catch (error) {
+    console.error("Error deleting car listing:", error);
+    throw error;
+  }
+}
