@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   AccordionItem,
@@ -38,24 +37,21 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
   children,
   isNested = false,
 }) => {
-  // When isNested is true, we don't want to wrap in an AccordionItem
+  // When isNested is true, we don't want to wrap in an AccordionItem or show a label
   if (isNested) {
     return (
-      <div>
-        <label className="text-sm font-medium mb-2 block">{title}</label>
-        <Select onValueChange={onValueChange} value={value || ""} disabled={disabled}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder={placeholder} />
-          </SelectTrigger>
-          <SelectContent className={`max-h-[${maxHeight}]`}>
-            {options.map((option) => (
-              <SelectItem key={option} value={option}>
-                {option}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <Select onValueChange={onValueChange} value={value || ""} disabled={disabled}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent className={`max-h-[${maxHeight}]`}>
+          {options.map((option) => (
+            <SelectItem key={option} value={option}>
+              {option}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     );
   }
 
