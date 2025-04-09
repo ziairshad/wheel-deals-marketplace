@@ -262,7 +262,8 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         <Separator />
       </div>
       <div className="overflow-y-auto flex-1 space-y-4 pr-2">
-        <Accordion type="multiple" defaultValue={["make", "model", "price", "year"]}>
+        <Accordion type="multiple" defaultValue={["make", "price", "year"]}>
+          {/* Make & Model section - both in the same accordion item */}
           <SelectFilter
             title="Make & Model"
             placeholder="Select make"
@@ -270,17 +271,21 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
             options={makes}
             onValueChange={handleMakeChange}
             accordionValue="make"
-          />
-
-          <SelectFilter
-            title="Model"
-            placeholder="Select model"
-            value={filters.model}
-            options={models}
-            onValueChange={handleModelChange}
-            accordionValue="model"
-            disabled={!filters.make}
-          />
+          >
+            {/* Nested Model select inside Make & Model accordion */}
+            <div className="mt-4">
+              <SelectFilter
+                title="Model"
+                placeholder="Select model"
+                value={filters.model}
+                options={models}
+                onValueChange={handleModelChange}
+                accordionValue="model-inner"
+                disabled={!filters.make}
+                isNested={true}
+              />
+            </div>
+          </SelectFilter>
 
           <RangeFilter
             title="Price Range"

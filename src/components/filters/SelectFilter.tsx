@@ -22,6 +22,8 @@ interface SelectFilterProps {
   accordionValue: string;
   disabled?: boolean;
   maxHeight?: string;
+  children?: React.ReactNode;
+  isNested?: boolean;
 }
 
 export const SelectFilter: React.FC<SelectFilterProps> = ({
@@ -33,7 +35,30 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
   accordionValue,
   disabled = false,
   maxHeight = "200px",
+  children,
+  isNested = false,
 }) => {
+  // When isNested is true, we don't want to wrap in an AccordionItem
+  if (isNested) {
+    return (
+      <div>
+        <label className="text-sm font-medium mb-2 block">{title}</label>
+        <Select onValueChange={onValueChange} value={value || ""} disabled={disabled}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent className={`max-h-[${maxHeight}]`}>
+            {options.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  }
+
   return (
     <AccordionItem value={accordionValue}>
       <AccordionTrigger className="py-3">{title}</AccordionTrigger>
@@ -50,6 +75,7 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
             ))}
           </SelectContent>
         </Select>
+        {children}
       </AccordionContent>
     </AccordionItem>
   );
