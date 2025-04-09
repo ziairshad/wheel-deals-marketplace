@@ -1,411 +1,337 @@
-
-import { useState, useEffect } from "react";
-import { Link, Navigate, useLocation } from "react-router-dom";
-import { Car, ArrowLeft } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useAuth } from "@/contexts/AuthContext";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
+import { useLocation, useNavigate } from "react-router-dom";
+import { Shield, Mail, Lock, User, Phone, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useAuth } from "@/contexts/AuthContext";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { useToast } from "@/hooks/use-toast";
 
-// Validate UAE phone number
-const uaePhoneRegex = /^\+971[0-9]{9}$/;
-
-const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address."),
-  password: z.string().min(6, "Password must be at least 6 characters."),
+// Define schemas for the forms using Zod
+const loginFormSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
-const signupSchema = z.object({
-  fullName: z.string().min(2, "Full name must be at least 2 characters."),
-  email: z.string().email("Please enter a valid email address."),
-  phoneNumber: z.string().regex(uaePhoneRegex, "Please enter a valid UAE mobile number (format: +971XXXXXXXXX)."),
-  password: z.string().min(6, "Password must be at least 6 characters."),
-  confirmPassword: z.string().min(6, "Password must be at least 6 characters."),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
+const registerFormSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  fullName: z.string().min(2, "Full name is required"),
+  phoneNumber: z.string().min(7, "Valid phone number required"),
 });
 
-const verifyPhoneSchema = z.object({
-  otp: z.string().length(6, "OTP must be 6 digits"),
+const verifyPhoneFormSchema = z.object({
+  code: z.string().length(6, "Verification code must be 6 digits"),
 });
-
-type LocationState = {
-  from?: { pathname: string };
-  verifyPhone?: boolean;
-};
 
 const AuthPage = () => {
-  const { user, signIn, signUp, loading, sendPhoneVerification, verifyPhoneNumber, profile } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("login");
-  const [showPhoneVerification, setShowPhoneVerification] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [userId, setUserId] = useState<string | undefined>();
-  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState("login");
+  const [isPhoneVerificationSent, setIsPhoneVerificationSent] = useState(false);
+  const [userIdForVerification, setUserIdForVerification] = useState<string | undefined>(undefined);
+
+  const { signIn, signUp, user, loading, sendPhoneVerification, verifyPhoneNumber } = useAuth();
   const location = useLocation();
-  const locationState = location.state as LocationState;
-  const redirectPath = locationState?.from?.pathname || "/";
-  
-  // Check if user needs to verify phone
-  useEffect(() => {
-    if (locationState?.verifyPhone && user) {
-      setShowPhoneVerification(true);
-      if (profile?.phone_number) {
-        setPhoneNumber(profile.phone_number);
-      }
-      setUserId(user.id);
-    }
-  }, [locationState, user, profile]);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const loginForm = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
+  // Form definitions using react-hook-form
+  const loginForm = useForm<z.infer<typeof loginFormSchema>>({
+    resolver: zodResolver(loginFormSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  const signupForm = useForm<z.infer<typeof signupSchema>>({
-    resolver: zodResolver(signupSchema),
+  const registerForm = useForm<z.infer<typeof registerFormSchema>>({
+    resolver: zodResolver(registerFormSchema),
     defaultValues: {
+      email: "",
+      password: "",
       fullName: "",
-      email: "",
-      phoneNumber: "+971",
-      password: "",
-      confirmPassword: "",
-    },
-  });
-  
-  const verifyPhoneForm = useForm<z.infer<typeof verifyPhoneSchema>>({
-    resolver: zodResolver(verifyPhoneSchema),
-    defaultValues: {
-      otp: "",
+      phoneNumber: "",
     },
   });
 
-  const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
+  const verifyPhoneForm = useForm<z.infer<typeof verifyPhoneFormSchema>>({
+    resolver: zodResolver(verifyPhoneFormSchema),
+    defaultValues: {
+      code: "",
+    },
+  });
+
+  const handleSignIn = async (data: z.infer<typeof loginFormSchema>) => {
+    setIsSubmitting(true);
     try {
-      setIsLoading(true);
-      await signIn(values.email, values.password);
+      await signIn(data.email, data.password);
+      // After successful sign in, redirect
+      const from = location.state?.from?.pathname || "/";
+      navigate(from);
     } catch (error) {
-      console.error("Login error:", error);
+      // Error handling already done in the signIn function
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const onSignupSubmit = async (values: z.infer<typeof signupSchema>) => {
+  const handleRegister = async (data: z.infer<typeof registerFormSchema>) => {
+    setIsSubmitting(true);
     try {
-      setIsLoading(true);
-      const newUserId = await signUp(values.email, values.password, values.fullName, values.phoneNumber);
-      if (newUserId) {
-        setUserId(newUserId);
-        setPhoneNumber(values.phoneNumber);
-        setShowPhoneVerification(true);
-        
-        // Send verification code
-        await sendPhoneVerification(values.phoneNumber);
+      const userId = await signUp(data.email, data.password, data.fullName, data.phoneNumber);
+      if (userId) {
+        setUserIdForVerification(userId);
+        setIsPhoneVerificationSent(true);
+        setActiveTab("verify-phone");
       }
     } catch (error) {
-      console.error("Signup error:", error);
+      // Error handling already done in the signUp function
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
-  
-  const handleSendVerificationCode = async () => {
-    if (!phoneNumber) {
-      toast.error("Please enter a phone number");
-      return;
-    }
-    
+
+  const handleSendVerificationCode = async (phoneNumber: string) => {
+    setIsSubmitting(true);
     try {
-      setIsLoading(true);
       await sendPhoneVerification(phoneNumber);
     } catch (error) {
-      console.error("Failed to send verification code:", error);
+      // Error handling already done in the sendPhoneVerification function
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
-  
-  const onVerifyPhoneSubmit = async (values: z.infer<typeof verifyPhoneSchema>) => {
-    if (!userId || !phoneNumber) {
-      toast.error("Missing user information. Please try again.");
-      return;
-    }
-    
+
+  const handleVerifyCode = async (data: z.infer<typeof verifyPhoneFormSchema>) => {
+    setIsSubmitting(true);
     try {
-      setIsLoading(true);
-      const success = await verifyPhoneNumber(phoneNumber, values.otp, userId);
-      
-      if (success) {
-        // Redirect back to the original page
-        window.location.href = redirectPath;
+      if (!userIdForVerification) {
+        throw new Error("User ID not available for verification.");
+      }
+      const isVerified = await verifyPhoneNumber(registerForm.getValues().phoneNumber, data.code, userIdForVerification);
+      if (isVerified) {
+        toast({
+          title: "Success",
+          description: "Your phone number has been verified successfully!",
+        });
+        const from = location.state?.from?.pathname || "/";
+        navigate(from);
       }
     } catch (error) {
-      console.error("Failed to verify phone:", error);
+      // Error handling already done in the verifyPhoneNumber function
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  // Return to signup form
-  const handleBackToSignup = () => {
-    setShowPhoneVerification(false);
-  };
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user && !loading) {
+      const from = location.state?.from?.pathname || "/";
+      navigate(from);
+    }
+  }, [user, loading, navigate, location.state]);
 
-  // If user is already logged in and phone is verified, redirect to home page
-  if (user && !loading && profile?.phone_verified && !locationState?.verifyPhone) {
-    return <Navigate to={redirectPath} replace />;
-  }
+  // Check if we need to show the phone verification tab on mount
+  useEffect(() => {
+    if (location.state?.verifyPhone) {
+      setActiveTab("verify-phone");
+    }
+  }, [location.state]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4 py-8">
-      <div className="w-full max-w-md">
-        <div className="flex flex-col items-center mb-6">
-          <Link to="/" className="flex items-center gap-2 mb-4">
-            <Car className="h-8 w-8 text-car-blue" />
-            <span className="text-2xl font-bold text-car-blue">Wheel Deals</span>
-          </Link>
-          
-          {showPhoneVerification ? (
-            <h1 className="text-2xl font-semibold text-center">Verify Your Phone Number</h1>
-          ) : (
-            <h1 className="text-2xl font-semibold text-center">
-              {activeTab === "login" ? "Welcome back" : "Create an account"}
-            </h1>
-          )}
-          
-          {showPhoneVerification ? (
-            <p className="text-center text-muted-foreground mt-2">
-              Please enter the verification code sent to {phoneNumber}
-            </p>
-          ) : (
-            <p className="text-center text-muted-foreground mt-2">
-              {activeTab === "login" 
-                ? "Enter your credentials to access your account" 
-                : "Fill in your details to create a new account"}
-            </p>
-          )}
+    <div className="min-h-screen flex flex-col">
+      <Header />
+
+      <main className="flex-1 container py-8 max-w-xl">
+        <div className="flex items-center mb-6">
+          <Shield className="h-8 w-8 text-car-blue mr-3" />
+          <h1 className="text-3xl font-bold">
+            {activeTab === "login"
+              ? "Login"
+              : activeTab === "register"
+              ? "Register"
+              : "Verify Phone"}
+          </h1>
         </div>
 
-        <div className="bg-white p-8 rounded-lg shadow-sm border">
-          {showPhoneVerification ? (
-            <>
-              <Button 
-                variant="ghost" 
-                className="mb-4 px-0" 
-                onClick={handleBackToSignup}
-                disabled={isLoading}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
-              
-              <Form {...verifyPhoneForm}>
-                <form onSubmit={verifyPhoneForm.handleSubmit(onVerifyPhoneSubmit)} className="space-y-4">
-                  <FormField
-                    control={verifyPhoneForm.control}
-                    name="otp"
-                    render={({ field }) => (
-                      <FormItem className="space-y-4">
-                        <FormLabel>Verification Code</FormLabel>
-                        <FormControl>
-                          <InputOTP maxLength={6} {...field}>
-                            <InputOTPGroup>
-                              <InputOTPSlot index={0} />
-                              <InputOTPSlot index={1} />
-                              <InputOTPSlot index={2} />
-                              <InputOTPSlot index={3} />
-                              <InputOTPSlot index={4} />
-                              <InputOTPSlot index={5} />
-                            </InputOTPGroup>
-                          </InputOTP>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <div className="flex flex-col space-y-2">
-                    <Button 
-                      type="submit" 
-                      className="w-full mt-6 bg-car-blue hover:bg-blue-700" 
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Verifying..." : "Verify Phone Number"}
-                    </Button>
-                    
-                    <Button 
-                      type="button"
-                      variant="outline"
-                      onClick={handleSendVerificationCode}
-                      disabled={isLoading}
-                    >
-                      Resend Code
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </>
-          ) : (
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-2 w-full mb-6">
-                <TabsTrigger value="login">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="login">
-                <Form {...loginForm}>
-                  <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+        <p className="text-muted-foreground mb-8">
+          {activeTab === "login"
+            ? "Sign in to access your account and manage your car listings."
+            : activeTab === "register"
+            ? "Create a new account to start listing your cars for sale."
+            : "Verify your phone number to complete your registration."}
+        </p>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="login">Login</TabsTrigger>
+            <TabsTrigger value="register">Register</TabsTrigger>
+            {isPhoneVerificationSent && (
+              <TabsTrigger value="verify-phone">Verify Phone</TabsTrigger>
+            )}
+          </TabsList>
+          <Separator className="mb-4" />
+
+          <TabsContent value="login" className="space-y-6">
+            <Form {...loginForm}>
+              <form onSubmit={loginForm.handleSubmit(handleSignIn)} className="space-y-4">
+                <FormField
+                  control={loginForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="Email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={loginForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full bg-car-blue hover:bg-blue-700" disabled={isSubmitting}>
+                  {isSubmitting ? "Logging in..." : "Login"}
+                </Button>
+              </form>
+            </Form>
+          </TabsContent>
+
+          <TabsContent value="register" className="space-y-6">
+            <Form {...registerForm}>
+              <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
+                <FormField
+                  control={registerForm.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Full Name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="Email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Phone Number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full bg-car-blue hover:bg-blue-700" disabled={isSubmitting}>
+                  {isSubmitting ? "Registering..." : "Register"}
+                </Button>
+              </form>
+            </Form>
+          </TabsContent>
+
+          <TabsContent value="verify-phone" className="space-y-6">
+            {isPhoneVerificationSent ? (
+              <>
+                <p className="text-muted-foreground">
+                  We have sent a verification code to your phone number. Please enter the code below to verify your
+                  account.
+                </p>
+                <Form {...verifyPhoneForm}>
+                  <form onSubmit={verifyPhoneForm.handleSubmit(handleVerifyCode)} className="space-y-4">
                     <FormField
-                      control={loginForm.control}
-                      name="email"
+                      control={verifyPhoneForm.control}
+                      name="code"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>Verification Code</FormLabel>
                           <FormControl>
-                            <Input placeholder="email@example.com" {...field} />
+                            <Input placeholder="######" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
-                    <FormField
-                      control={loginForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full mt-6 bg-car-blue hover:bg-blue-700" 
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Signing In..." : "Sign In"}
-                    </Button>
-                  </form>
-                </Form>
-              </TabsContent>
-              
-              <TabsContent value="signup">
-                <Form {...signupForm}>
-                  <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="space-y-4">
-                    <FormField
-                      control={signupForm.control}
-                      name="fullName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Full Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="John Doe" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={signupForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input placeholder="email@example.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={signupForm.control}
-                      name="phoneNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>UAE Mobile Number</FormLabel>
-                          <FormControl>
-                            <Input placeholder="+971XXXXXXXXX" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                          <p className="text-xs text-muted-foreground">Format: +971XXXXXXXXX</p>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={signupForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={signupForm.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Confirm Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full mt-6 bg-car-blue hover:bg-blue-700" 
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Creating Account..." : "Create Account"}
+                    <Button type="submit" className="w-full bg-car-blue hover:bg-blue-700" disabled={isSubmitting}>
+                      {isSubmitting ? "Verifying..." : "Verify"}
                     </Button>
                   </form>
                 </Form>
-              </TabsContent>
-            </Tabs>
-          )}
-        </div>
-        
-        <div className="text-center mt-4">
-          <Link to="/" className="text-muted-foreground hover:text-gray-900">
-            Back to Home
-          </Link>
-        </div>
-      </div>
+              </>
+            ) : (
+              <>
+                <p className="text-muted-foreground">
+                  Before you can start listing your cars, we need to verify your phone number.
+                </p>
+                <Button
+                  onClick={() => handleSendVerificationCode(registerForm.getValues().phoneNumber)}
+                  className="bg-car-blue hover:bg-blue-700"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Sending Code..." : "Send Verification Code"}
+                </Button>
+              </>
+            )}
+          </TabsContent>
+        </Tabs>
+      </main>
+
+      <Footer />
     </div>
   );
 };

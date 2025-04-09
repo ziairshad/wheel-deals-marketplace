@@ -10,6 +10,11 @@ const Header = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   return (
     <header className="border-b">
       <div className="container mx-auto py-4 px-4 flex items-center justify-between">
@@ -39,10 +44,7 @@ const Header = () => {
               </Button>
               <Button 
                 variant="ghost"
-                onClick={() => {
-                  signOut();
-                  navigate("/");
-                }}
+                onClick={handleSignOut}
                 className="flex items-center"
               >
                 <UserCircle className="h-5 w-5 mr-2" />
