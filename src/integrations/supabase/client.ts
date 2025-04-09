@@ -34,6 +34,7 @@ export type CarListingRow = {
   created_at: string;
   images: string[] | null;
   vin: string | null;
+  regional_specs: string | null;
 }
 
 // Helper function to fetch car by id that handles type safety

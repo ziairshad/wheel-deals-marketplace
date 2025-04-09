@@ -1,3 +1,4 @@
+
 import { CarFormData } from "@/types/car";
 import { CarListingRow, supabase } from "@/integrations/supabase/client";
 
@@ -51,6 +52,7 @@ export async function submitCarListing(formData: CarFormData, userId: string, im
       contact_email: formData.contactEmail,
       status: 'available',
       vin: formData.vin,
+      regional_specs: formData.regionalSpecs,
     };
 
     let carId = editId;

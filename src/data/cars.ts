@@ -1,3 +1,4 @@
+
 export interface Car {
   id: string;
   make: string;
@@ -21,6 +22,7 @@ export interface Car {
   sellerType: "dealer" | "private";
   sellerName: string;
   listedDate: string;
+  regionalSpecs: string | null;
 }
 
 // Define valid emirates

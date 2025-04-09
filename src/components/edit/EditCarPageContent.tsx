@@ -51,6 +51,7 @@ const EditCarPageContent: React.FC<EditCarPageContentProps> = ({ carId }) => {
       contactPhone: "",
       contactEmail: "",
       vin: "",
+      regionalSpecs: "",
     },
   });
   
@@ -76,6 +77,7 @@ const EditCarPageContent: React.FC<EditCarPageContentProps> = ({ carId }) => {
         contactPhone: car.contact_phone || "",
         contactEmail: car.contact_email || "",
         vin: car.vin || "",
+        regionalSpecs: car.regional_specs || "",
       };
       
       console.log("Converted form data:", formData);
@@ -119,6 +121,7 @@ const EditCarPageContent: React.FC<EditCarPageContentProps> = ({ carId }) => {
         contactPhone: data.contactPhone,
         contactEmail: data.contactEmail,
         vin: data.vin,
+        regionalSpecs: data.regionalSpecs,
       };
       
       await submitCarListing(carFormData, user.id, images, carId, existingImages);
