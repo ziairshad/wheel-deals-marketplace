@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
 import HomePage from "./pages/HomePage";
 import CarDetailsPage from "./pages/CarDetailsPage";
 import SellYourCarPage from "./pages/SellYourCarPage";
@@ -21,47 +20,45 @@ const queryClient = new QueryClient();
 const App = () => (
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AuthProvider>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/car/:id" element={<CarDetailsPage />} />
-                <Route 
-                  path="/sell" 
-                  element={
-                    <ProtectedRoute requirePhoneVerification={true}>
-                      <SellYourCarPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/edit/:id" 
-                  element={
-                    <ProtectedRoute requirePhoneVerification={true}>
-                      <EditCarPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/my-listings" 
-                  element={
-                    <ProtectedRoute>
-                      <MyListingsPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route path="/auth" element={<AuthPage />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/car/:id" element={<CarDetailsPage />} />
+              <Route 
+                path="/sell" 
+                element={
+                  <ProtectedRoute requirePhoneVerification={true}>
+                    <SellYourCarPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/edit/:id" 
+                element={
+                  <ProtectedRoute requirePhoneVerification={true}>
+                    <EditCarPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/my-listings" 
+                element={
+                  <ProtectedRoute>
+                    <MyListingsPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="/auth" element={<AuthPage />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
     </QueryClientProvider>
   </React.StrictMode>
 );

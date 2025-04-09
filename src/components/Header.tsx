@@ -1,210 +1,129 @@
 
-import React, { useState } from "react";
-import { Menu, X, User } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Car, Home, Search, UserCircle, LogOut, ClipboardList } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import ThemeToggle from "@/components/ThemeToggle";
-import { useMobile } from "@/hooks/use-mobile";
 
 const Header = () => {
-  const { user, profile, signOut } = useAuth();
-  const isAuthenticated = !!user;
   const navigate = useNavigate();
   const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isMobile = useMobile();
-
-  const closeMobileMenu = () => {
-    setMobileMenuOpen(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const { user, signOut } = useAuth();
+  
+  // Update local search state when URL changes
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const searchParam = searchParams.get("search");
+    setSearchQuery(searchParam || "");
+  }, [location.search]);
+  
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const searchParams = new URLSearchParams(location.search);
+    
+    if (searchQuery.trim()) {
+      searchParams.set("search", searchQuery.trim());
+    } else {
+      searchParams.delete("search");
+    }
+    
+    // Force a navigation even if the URL appears the same
+    const searchString = searchParams.toString();
+    const targetUrl = searchString ? `/?${searchString}` : '/';
+    
+    // Using replace to avoid building up history stack with search operations
+    navigate(targetUrl, { replace: true });
   };
-
+  
+  // Handle input change and clear search immediately if empty
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setSearchQuery(newValue);
+    
+    // If the field is cleared, immediately update the URL
+    if (newValue === "" && searchQuery !== "") {
+      const searchParams = new URLSearchParams(location.search);
+      searchParams.delete("search");
+      navigate(`/?${searchParams.toString()}`, { replace: true });
+    }
+  };
+  
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center">
-        <div className="mr-4 flex">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="hidden font-bold sm:inline-block">
-              Car Marketplace
-            </span>
-          </Link>
+    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur-sm">
+      <div className="container flex h-16 items-center justify-between">
+        <Link to="/" className="flex items-center gap-2">
+          <Car className="h-6 w-6 text-car-blue" />
+          <span className="text-xl font-bold text-car-blue">Wheel Deals</span>
+        </Link>
+        
+        <div className="flex-1 mx-8 max-w-xl">
+          <form onSubmit={handleSearch} className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search makes, models, or keywords..."
+              className="w-full bg-background pl-8 pr-4"
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+            />
+          </form>
         </div>
         
-        <div className="hidden md:flex md:flex-1 md:items-center md:justify-between md:space-x-4">
-          <nav className="flex items-center space-x-6">
-            <Link to="/" className="font-medium text-sm transition-colors hover:text-foreground">
-              Home
-            </Link>
-            <Link to="/sell" className="font-medium text-sm transition-colors hover:text-foreground">
-              Sell Your Car
-            </Link>
-            {isAuthenticated && (
-              <Link
-                to="/my-listings"
-                className="font-medium text-sm transition-colors hover:text-foreground"
-              >
-                My Listings
-              </Link>
-            )}
-          </nav>
+        <nav className="flex items-center gap-4">
+          <Link to="/" className="flex items-center gap-1.5 text-sm font-medium">
+            <Home className="h-4 w-4" />
+            <span>Home</span>
+          </Link>
           
-          <div className="flex items-center space-x-2">
-            <ThemeToggle />
-            
-            {isAuthenticated ? (
+          {user ? (
+            <>
+              <Link to="/sell">
+                <Button className="bg-car-blue hover:bg-blue-700">
+                  Sell Your Car
+                </Button>
+              </Link>
+              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={profile?.avatar_url || user?.user_metadata?.avatar_url || ""} alt={profile?.full_name || user?.user_metadata?.name || "Avatar"} />
-                      <AvatarFallback>{(profile?.full_name?.[0] || user?.user_metadata?.name?.[0] || "U").toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <span className="sr-only">Open user menu</span>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <UserCircle className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <div className="grid gap-2 px-2 py-1">
-                    <div className="grid gap-0.5">
-                      <p className="text-sm font-medium text-foreground">{profile?.full_name || user?.user_metadata?.name || user?.email}</p>
-                      <p className="text-xs text-muted-foreground">{user?.email}</p>
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => {
-                      navigate("/my-listings");
-                    }}
-                  >
-                    My Listings
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      navigate("/sell");
-                    }}
-                  >
-                    Sell Your Car
+                  <DropdownMenuItem className="text-muted-foreground">
+                    {user.email}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => {
-                      signOut();
-                      navigate("/auth");
-                    }}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    Sign Out
+                  <DropdownMenuItem onClick={() => navigate("/my-listings")}>
+                    <ClipboardList className="mr-2 h-4 w-4" />
+                    <span>My Listings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => signOut()}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign Out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : (
-              <Button asChild>
-                <Link to="/auth">Sign In</Link>
+            </>
+          ) : (
+            <Link to="/auth">
+              <Button className="bg-car-blue hover:bg-blue-700">
+                Sign In
               </Button>
-            )}
-          </div>
-        </div>
-        
-        <div className="flex md:hidden flex-1 justify-end">
-          <ThemeToggle />
-          <Button
-            variant="ghost"
-            className="ml-2"
-            size="icon"
-            onClick={() => setMobileMenuOpen(true)}
-          >
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Open main menu</span>
-          </Button>
-        </div>
+            </Link>
+          )}
+        </nav>
       </div>
-      
-      {mobileMenuOpen && (
-        <div className="relative z-50 md:hidden" role="dialog" aria-modal="true">
-          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity"></div>
-          
-          <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-              
-              <div className="relative transform overflow-hidden rounded-lg bg-card text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm">
-                <div className="bg-card px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                  <div className="sm:flex sm:items-start">
-                    <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                      <h3 className="text-base font-semibold leading-6 text-foreground" id="modal-title">
-                        Menu
-                      </h3>
-                      <div className="mt-4">
-                        <nav className="grid gap-6">
-                          <Link
-                            to="/"
-                            onClick={closeMobileMenu}
-                            className="font-medium text-sm transition-colors hover:text-foreground"
-                          >
-                            Home
-                          </Link>
-                          <Link
-                            to="/sell"
-                            onClick={closeMobileMenu}
-                            className="font-medium text-sm transition-colors hover:text-foreground"
-                          >
-                            Sell Your Car
-                          </Link>
-                          {isAuthenticated && (
-                            <Link
-                              to="/my-listings"
-                              onClick={closeMobileMenu}
-                              className="font-medium text-sm transition-colors hover:text-foreground"
-                            >
-                              My Listings
-                            </Link>
-                          )}
-                          {!isAuthenticated ? (
-                            <Link
-                              to="/auth"
-                              onClick={closeMobileMenu}
-                              className="font-medium text-sm transition-colors hover:text-foreground"
-                            >
-                              Sign In
-                            </Link>
-                          ) : (
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => {
-                                signOut();
-                                closeMobileMenu();
-                                navigate("/auth");
-                              }}
-                            >
-                              Sign Out
-                            </Button>
-                          )}
-                        </nav>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Close
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </header>
   );
 };
