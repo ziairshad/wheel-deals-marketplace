@@ -87,7 +87,7 @@ const CarDetailsPage = () => {
           </div>
           
           {/* Sidebar Column - Sticky */}
-          <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
+          <div className="space-y-6 sticky top-6 self-start max-h-screen overflow-y-auto pb-6">
             {/* Contact Information */}
             <ContactInfo car={car} />
             
