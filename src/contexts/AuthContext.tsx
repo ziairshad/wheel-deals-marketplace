@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -112,6 +111,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName: string, phoneNumber: string) => {
     try {
+      // First check if email already exists
+      const { error: emailCheckError, count } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('id', await getIdFromEmail(email));
+        
+      if (count && count > 0) {
+        toast.error("This email is already registered. Please use a different email address.");
+        throw new Error("Email already in use");
+      }
+
       // Check if phone number already exists in profiles
       const { data: existingUserWithPhone, error: phoneCheckError } = await supabase
         .from('profiles')
@@ -159,12 +169,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Helper function to get user ID from email (for checking if email exists)
+  const getIdFromEmail = async (email: string) => {
+    try {
+      const { data, error } = await supabase.auth.admin.getUserByEmail(email);
+      if (error) {
+        console.error("Error checking email:", error);
+        return null;
+      }
+      return data?.user?.id;
+    } catch (error) {
+      console.error("Error checking email:", error);
+      return null;
+    }
+  };
+
   const sendPhoneVerification = async (phoneNumber: string) => {
     try {
-      if (!user) {
-        throw new Error("You must be logged in to verify your phone number");
-      }
-
+      // Don't require the user to be logged in when first verifying during signup
       const response = await supabase.functions.invoke("verify-phone", {
         body: { 
           phoneNumber, 

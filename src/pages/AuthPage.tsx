@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { Car, ArrowLeft } from "lucide-react";
@@ -117,8 +116,13 @@ const AuthPage = () => {
         setPhoneNumber(values.phoneNumber);
         setShowPhoneVerification(true);
         
-        // Send verification code
-        await sendPhoneVerification(values.phoneNumber);
+        try {
+          // Send verification code after successful signup
+          await sendPhoneVerification(values.phoneNumber);
+        } catch (error) {
+          console.error("Failed to send verification code:", error);
+          // Continue with verification UI even if sending code fails
+        }
       }
     } catch (error) {
       console.error("Signup error:", error);
