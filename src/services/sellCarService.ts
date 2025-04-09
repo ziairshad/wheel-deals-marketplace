@@ -21,7 +21,7 @@ export async function submitCarListing(formData: CarFormData, userId: string, im
       contact_name: formData.contactName,
       contact_phone: formData.contactPhone,
       contact_email: formData.contactEmail,
-      status: 'available', // Ensure status is set to 'available'
+      status: 'available', // Set status to 'available' explicitly
       vin: formData.vin,
     };
 

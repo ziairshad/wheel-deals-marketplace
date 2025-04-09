@@ -1,3 +1,4 @@
+
 import { Car } from "../data/cars";
 import { CarListingRow } from "@/integrations/supabase/client";
 

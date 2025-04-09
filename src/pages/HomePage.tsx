@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Car } from "lucide-react";
@@ -8,9 +9,7 @@ import FilterSidebar from "@/components/FilterSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useMobile } from "@/hooks/use-mobile";
-import { Car as CarType } from "@/data/cars";
-import { initialCars } from "@/data/cars";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { CarListingRow, supabase } from "@/integrations/supabase/client";
 import { UnifiedCar, filterCars, initialFilterOptions, sortOptions, FilterOptions } from "@/utils/filter-utils";
 
@@ -20,10 +19,9 @@ const HomePage = () => {
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterOptions>(initialFilterOptions);
   const [selectedSort, setSelectedSort] = useState(sortOptions[0]);
-  const [showSampleCars, setShowSampleCars] = useState(false);
   
   const { toast } = useToast();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   
   const [searchParams] = useSearchParams();
@@ -31,14 +29,6 @@ const HomePage = () => {
   const toggleFilters = () => {
     setIsFilterOpen(!isFilterOpen);
   };
-  
-  useEffect(() => {
-    // Check if there are any query parameters
-    const hasQueryParams = Array.from(searchParams.keys()).length > 0;
-    
-    // If there are query params, show sample cars
-    setShowSampleCars(hasQueryParams);
-  }, [searchParams]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,10 +47,8 @@ const HomePage = () => {
           throw new Error('Failed to fetch car listings');
         }
         
-        // Combine sample cars and real listings if needed
-        const allCars: UnifiedCar[] = showSampleCars 
-          ? [...initialCars, ...(carListings || [])]
-          : [...(carListings || [])];
+        // Use only the real listings from database
+        const allCars: UnifiedCar[] = carListings || [];
         
         // Apply filtering
         const filtered = filterCars(allCars, filters);
@@ -78,13 +66,13 @@ const HomePage = () => {
     };
     
     fetchData();
-  }, [searchParams, showSampleCars]);
+  }, [filters, selectedSort]);
 
   const handleFilterChange = (newFilters: FilterOptions) => {
     setFilters(newFilters);
   };
 
-  const handleSortChange = (sortOption: (typeof sortOptions)[0]) => {
+  const handleSortChange = (sortOption: typeof sortOptions[0]) => {
     setSelectedSort(sortOption);
   };
 
@@ -98,8 +86,6 @@ const HomePage = () => {
           <FilterSidebar 
             filters={filters}
             onFilterChange={handleFilterChange}
-            onSortChange={handleSortChange}
-            selectedSort={selectedSort}
           />
         </aside>
         
@@ -120,8 +106,6 @@ const HomePage = () => {
               <FilterSidebar 
                 filters={filters}
                 onFilterChange={handleFilterChange}
-                onSortChange={handleSortChange}
-                selectedSort={selectedSort}
               />
               <Button onClick={toggleFilters} className="mt-4 w-full">Close Filters</Button>
             </aside>
