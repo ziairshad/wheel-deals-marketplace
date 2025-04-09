@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -23,7 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import CarGallery from "@/components/CarGallery";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, CarListingRow } from "@/integrations/supabase/client";
 import { formatPrice, formatMileage } from "@/data/cars";
 import { useToast } from "@/hooks/use-toast";
 
@@ -35,14 +35,23 @@ const CarDetailsPage = () => {
   const { data: car, isLoading, error } = useQuery({
     queryKey: ['car', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('car_listings')
-        .select('*')
-        .eq('id', id)
-        .single();
-        
-      if (error) throw error;
-      return data;
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/car_listings?id=eq.${id}&select=*`, {
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch car details');
+      }
+      
+      const data = await response.json();
+      if (!data || data.length === 0) {
+        throw new Error('Car not found');
+      }
+      
+      return data[0] as CarListingRow;
     }
   });
 
@@ -118,6 +127,8 @@ const CarDetailsPage = () => {
     );
   }
 
+  const carTitle = `${car.year} ${car.make} ${car.model}`;
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -137,13 +148,13 @@ const CarDetailsPage = () => {
           {/* Car Details Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* Car Gallery */}
-            <CarGallery images={car.images || []} />
+            <CarGallery images={car.images || []} title={carTitle} />
             
             {/* Car Title & Price */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold">
-                  {car.year} {car.make} {car.model}
+                  {carTitle}
                 </h1>
                 <div className="flex items-center mt-1">
                   <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
@@ -182,7 +193,7 @@ const CarDetailsPage = () => {
                   <Fuel className="h-4 w-4 mr-1" />
                   <span className="text-xs">Fuel</span>
                 </div>
-                <span className="text-lg font-medium">{car.fuel_type}</span>
+                <span className="text-lg font-medium">{car.fuel_type || 'Not specified'}</span>
               </div>
               
               <div className="bg-gray-50 p-4 rounded-lg">
@@ -190,37 +201,39 @@ const CarDetailsPage = () => {
                   <RefreshCw className="h-4 w-4 mr-1" />
                   <span className="text-xs">Transmission</span>
                 </div>
-                <span className="text-lg font-medium">{car.transmission}</span>
+                <span className="text-lg font-medium">{car.transmission || 'Not specified'}</span>
               </div>
             </div>
 
             {/* VIN Number */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="text-muted-foreground text-sm mb-1">VIN (Vehicle Identification Number)</div>
-                  <span className="text-base font-medium font-mono">{car.vin}</span>
+            {car.vin && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div className="text-muted-foreground text-sm mb-1">VIN (Vehicle Identification Number)</div>
+                    <span className="text-base font-medium font-mono">{car.vin}</span>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={copyVinToClipboard}
+                    className="h-8 gap-1"
+                  >
+                    {copySuccess ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        <span>Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        <span>Copy VIN</span>
+                      </>
+                    )}
+                  </Button>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={copyVinToClipboard}
-                  className="h-8 gap-1"
-                >
-                  {copySuccess ? (
-                    <>
-                      <Check className="h-4 w-4" />
-                      <span>Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-4 w-4" />
-                      <span>Copy VIN</span>
-                    </>
-                  )}
-                </Button>
               </div>
-            </div>
+            )}
             
             {/* Description */}
             <div>

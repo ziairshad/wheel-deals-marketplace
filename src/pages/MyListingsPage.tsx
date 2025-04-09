@@ -10,13 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice, formatMileage } from "@/data/cars";
 import { cn } from "@/lib/utils";
-import { CarListing } from "@/types/car";
-import { fetchMyListings } from "@/services/sellCarService";
+import { CarListingRow } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const MyListingsPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [listings, setListings] = useState<CarListing[]>([]);
+  const { toast } = useToast();
+  const [listings, setListings] = useState<CarListingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,18 +30,35 @@ const MyListingsPage = () => {
     const getListings = async () => {
       try {
         setLoading(true);
-        const data = await fetchMyListings(user.id);
-        setListings(data);
+        
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/car_listings?user_id=eq.${user.id}&select=*&order=created_at.desc`, {
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch listings');
+        }
+        
+        const data = await response.json();
+        setListings(data as CarListingRow[]);
       } catch (err) {
         console.error("Error fetching listings:", err);
         setError("Failed to load your listings. Please try again later.");
+        toast({
+          title: "Error",
+          description: "There was a problem loading your listings.",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
     };
 
     getListings();
-  }, [user, navigate]);
+  }, [user, navigate, toast]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
