@@ -48,8 +48,9 @@ const CarSpecs = ({ car }: CarSpecsProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Main Car Specs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {/* Car Specs Grid - All specs in a single grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+        {/* Year */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="flex items-center text-muted-foreground mb-1">
             <Calendar className="h-4 w-4 mr-1" />
@@ -58,6 +59,7 @@ const CarSpecs = ({ car }: CarSpecsProps) => {
           <span className="text-lg font-medium">{car.year}</span>
         </div>
         
+        {/* Mileage */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="flex items-center text-muted-foreground mb-1">
             <Gauge className="h-4 w-4 mr-1" />
@@ -66,6 +68,7 @@ const CarSpecs = ({ car }: CarSpecsProps) => {
           <span className="text-lg font-medium">{formatMileage(car.mileage)}</span>
         </div>
         
+        {/* Fuel */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="flex items-center text-muted-foreground mb-1">
             <Fuel className="h-4 w-4 mr-1" />
@@ -74,6 +77,7 @@ const CarSpecs = ({ car }: CarSpecsProps) => {
           <span className="text-lg font-medium">{car.fuel_type || 'Not specified'}</span>
         </div>
         
+        {/* Transmission */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="flex items-center text-muted-foreground mb-1">
             <RefreshCw className="h-4 w-4 mr-1" />
@@ -81,10 +85,7 @@ const CarSpecs = ({ car }: CarSpecsProps) => {
           </div>
           <span className="text-lg font-medium">{car.transmission || 'Not specified'}</span>
         </div>
-      </div>
-      
-      {/* Second row of specifications including VIN */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        
         {/* Regional Specs */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="flex items-center text-muted-foreground mb-1">
@@ -102,15 +103,15 @@ const CarSpecs = ({ car }: CarSpecsProps) => {
               <span className="text-xs">VIN</span>
             </div>
             <div className="flex items-center">
-              <span className="text-lg font-medium font-mono">{car.vin}</span>
+              <span className="text-lg font-medium font-mono truncate">{car.vin}</span>
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={copyVinToClipboard}
-                className="h-8 w-8 ml-2"
+                className="h-6 w-6 ml-1 flex-shrink-0"
                 title="Copy VIN"
               >
-                <Copy className="h-4 w-4" />
+                <Copy className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
