@@ -4,14 +4,17 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCarById } from "@/integrations/supabase/client";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
+import { Car } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import VehicleInfoForm from "@/components/sell/VehicleInfoForm";
 import ContactInfoForm from "@/components/sell/ContactInfoForm";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { sellCarFormSchema } from "@/components/sell/SellCarFormSchema";
 import { submitCarListing } from "@/services/sellCarService";
 import { CarFormData } from "@/types/car";
@@ -145,54 +148,77 @@ const EditCarPageContent: React.FC<EditCarPageContentProps> = ({ carId }) => {
   };
   
   if (isLoading) {
-    return <div className="container py-8">Loading car details...</div>;
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 container py-8">
+          <div className="text-center py-12">Loading car details...</div>
+        </main>
+        <Footer />
+      </div>
+    );
   }
   
   if (error) {
     return (
-      <div className="container py-8">
-        <p className="text-red-500">Error loading car details. Please try again.</p>
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 container py-8">
+          <p className="text-red-500">Error loading car details. Please try again.</p>
+        </main>
+        <Footer />
       </div>
     );
   }
   
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-6">Edit Your Car Listing</h1>
+    <div className="min-h-screen flex flex-col">
+      <Header />
       
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <div className="bg-white rounded-lg border shadow-sm p-6">
-            <VehicleInfoForm 
-              images={images} 
-              setImages={setImages} 
-              existingImages={existingImages}
-              onExistingImagesChange={setExistingImages}
-            />
-          </div>
-          
-          <div className="bg-white rounded-lg border shadow-sm p-6">
-            <ContactInfoForm />
-          </div>
-          
-          <div className="flex justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate("/my-listings")}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              className="bg-car-blue hover:bg-blue-700"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Updating..." : "Update Listing"}
-            </Button>
-          </div>
-        </form>
-      </Form>
+      <main className="flex-1 container py-8 max-w-3xl">
+        <div className="flex items-center mb-6">
+          <Car className="h-8 w-8 text-car-blue mr-3" />
+          <h1 className="text-3xl font-bold">Edit Your Car Listing</h1>
+        </div>
+        
+        <p className="text-muted-foreground mb-8">
+          Update your car listing information below. All fields marked with * are required.
+        </p>
+        
+        <FormProvider {...form}>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <VehicleInfoForm 
+                images={images} 
+                setImages={setImages} 
+                existingImages={existingImages}
+                onExistingImagesChange={setExistingImages}
+              />
+              <ContactInfoForm />
+              
+              <div className="flex justify-end gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate("/my-listings")}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  size="lg"
+                  className="px-8 bg-car-blue hover:bg-blue-700"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Updating..." : "Update Listing"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </FormProvider>
+      </main>
+      
+      <Footer />
     </div>
   );
 };

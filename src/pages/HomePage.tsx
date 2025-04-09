@@ -1,13 +1,20 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Car } from "lucide-react";
+import { Car, SortDesc } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CarCard from "@/components/CarCard";
 import FilterSidebar from "@/components/FilterSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CarListingRow, supabase } from "@/integrations/supabase/client";
@@ -87,8 +94,11 @@ const HomePage = () => {
     setFilters(newFilters);
   };
 
-  const handleSortChange = (sortOption: typeof sortOptions[0]) => {
-    setSelectedSort(sortOption);
+  const handleSortChange = (sortId: string) => {
+    const newSortOption = sortOptions.find(option => option.id === sortId);
+    if (newSortOption) {
+      setSelectedSort(newSortOption);
+    }
   };
 
   return (
@@ -148,20 +158,50 @@ const HomePage = () => {
               <p className="text-muted-foreground">{error}</p>
               <Button onClick={() => window.location.reload()}>Retry</Button>
             </div>
-          ) : filteredCars.length === 0 ? (
-            <div className="text-center py-12">
-              <Car className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-              <h3 className="text-lg font-medium mb-2">No cars found</h3>
-              <p className="text-muted-foreground">
-                No cars match your current filter criteria.
-              </p>
-            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCars.map((car) => (
-                <CarCard key={car.id} car={car} />
-              ))}
-            </div>
+            <>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                <p className="text-muted-foreground mb-4 md:mb-0">
+                  Showing <span className="font-medium text-foreground">{filteredCars.length}</span> cars
+                </p>
+                
+                <div className="flex items-center gap-2">
+                  <SortDesc className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm mr-2">Sort by:</span>
+                  <Select 
+                    value={selectedSort.id} 
+                    onValueChange={handleSortChange}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder={selectedSort.label} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sortOptions.map((option) => (
+                        <SelectItem key={option.id} value={option.id}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {filteredCars.length === 0 ? (
+                <div className="text-center py-12">
+                  <Car className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <h3 className="text-lg font-medium mb-2">No cars found</h3>
+                  <p className="text-muted-foreground">
+                    No cars match your current filter criteria.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredCars.map((car) => (
+                    <CarCard key={car.id} car={car} />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </section>
       </main>

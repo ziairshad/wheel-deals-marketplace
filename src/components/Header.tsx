@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Car, Home, Search, UserCircle, LogOut, ClipboardList } from "lucide-react";
+import { Car, Home, Search, LogOut, ClipboardList } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -128,7 +128,7 @@ const Header = () => {
                   <Button variant="ghost" size="icon" className="rounded-full p-0">
                     <Avatar className="h-8 w-8">
                       {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt={getUserDisplayName()} />}
-                      <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                      <AvatarFallback className="bg-gray-200 text-gray-700">{getUserInitials()}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
