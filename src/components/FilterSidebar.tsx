@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
@@ -41,13 +42,23 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   const [bodyTypes, setBodyTypes] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
   const [regionalSpecs, setRegionalSpecs] = useState<string[]>([]);
+  
+  // Range states with dynamic min/max values
   const [mileageRange, setMileageRange] = useState<number[]>([0, 200000]);
   const [priceRange, setPriceRange] = useState<number[]>([0, 100000]);
   const [yearRange, setYearRange] = useState<number[]>([1990, 2024]);
+  
+  // Min/max values from database
+  const [minMaxValues, setMinMaxValues] = useState({
+    mileage: { min: 0, max: 200000 },
+    price: { min: 0, max: 100000 },
+    year: { min: 1990, max: 2024 }
+  });
 
   useEffect(() => {
     const fetchFilterData = async () => {
       try {
+        // Fetch car listings
         const { data: carListings, error } = await supabase
           .from("car_listings")
           .select("*");
@@ -57,7 +68,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
           return;
         }
 
-        if (!carListings) {
+        if (!carListings || carListings.length === 0) {
           console.log("No car listings found.");
           return;
         }
@@ -65,10 +76,38 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         // Use TypeScript casting to ensure type safety
         const allCars: UnifiedCar[] = carListings as any[];
 
+        // Set filter options from data
         setMakes(getUniqueValues(allCars, "make"));
         setBodyTypes(getUniqueValues(allCars, "bodyType"));
         setLocations(getUniqueValues(allCars, "location"));
         setRegionalSpecs(getUniqueValues(allCars, "regionalSpecs"));
+        
+        // Calculate min and max values
+        const mileages = allCars.map(car => getCarProperty(car, 'mileage')).filter(Boolean) as number[];
+        const prices = allCars.map(car => getCarProperty(car, 'price')).filter(Boolean) as number[];
+        const years = allCars.map(car => getCarProperty(car, 'year')).filter(Boolean) as number[];
+        
+        const mileageMin = mileages.length > 0 ? Math.min(...mileages) : 0;
+        const mileageMax = mileages.length > 0 ? Math.max(...mileages) : 200000;
+        
+        const priceMin = prices.length > 0 ? Math.min(...prices) : 0;
+        const priceMax = prices.length > 0 ? Math.max(...prices) : 100000;
+        
+        const yearMin = years.length > 0 ? Math.min(...years) : 1990;
+        const yearMax = years.length > 0 ? Math.max(...years) : 2024;
+        
+        // Set min/max values
+        setMinMaxValues({
+          mileage: { min: mileageMin, max: mileageMax },
+          price: { min: priceMin, max: priceMax },
+          year: { min: yearMin, max: yearMax }
+        });
+        
+        // Update range state values
+        setMileageRange([mileageMin, mileageMax]);
+        setPriceRange([priceMin, priceMax]);
+        setYearRange([yearMin, yearMax]);
+        
       } catch (error) {
         console.error("Error fetching filter data:", error);
       }
@@ -76,6 +115,28 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
     fetchFilterData();
   }, []);
+  
+  // Helper function to get car property safely
+  const getCarProperty = (car: UnifiedCar, property: string): any => {
+    if ('user_id' in car) {
+      // This is a CarListingRow
+      switch (property) {
+        case 'fuelType': return car.fuel_type;
+        case 'bodyType': return car.body_type;
+        case 'exteriorColor': return car.exterior_color;
+        case 'regionalSpecs': return car.regional_specs;
+        case 'mileage': return car.mileage;
+        case 'price': return car.price;
+        case 'year': return car.year;
+        default:
+          // For properties that have the same name in both types
+          return (car as any)[property] ?? null;
+      }
+    } else {
+      // This is a Car from sample data
+      return (car as any)[property];
+    }
+  };
 
   useEffect(() => {
     const fetchModels = async () => {
@@ -181,9 +242,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
       search: null,
       regionalSpecs: null,
     });
-    setMileageRange([0, 200000]);
-    setPriceRange([0, 100000]);
-    setYearRange([1990, 2024]);
+    
+    // Reset the sliders to their dynamic min/max values
+    setMileageRange([minMaxValues.mileage.min, minMaxValues.mileage.max]);
+    setPriceRange([minMaxValues.price.min, minMaxValues.price.max]);
+    setYearRange([minMaxValues.year.min, minMaxValues.year.max]);
   };
 
   const formatMileage = (value: number) => {
@@ -241,10 +304,10 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
           <AccordionTrigger className="py-3">Price Range</AccordionTrigger>
           <AccordionContent>
             <DualRangeSlider
-              min={0}
-              max={100000}
+              min={minMaxValues.price.min}
+              max={minMaxValues.price.max}
               step={1000}
-              defaultValue={[0, 100000]}
+              defaultValue={[minMaxValues.price.min, minMaxValues.price.max]}
               value={priceRange}
               onValueChange={handlePriceRangeChange}
               formatValue={formatPrice}
@@ -257,10 +320,10 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
           <AccordionTrigger className="py-3">Year Range</AccordionTrigger>
           <AccordionContent>
             <DualRangeSlider
-              min={1990}
-              max={2024}
+              min={minMaxValues.year.min}
+              max={minMaxValues.year.max}
               step={1}
-              defaultValue={[1990, 2024]}
+              defaultValue={[minMaxValues.year.min, minMaxValues.year.max]}
               value={yearRange}
               onValueChange={handleYearRangeChange}
               aria-label="year-range"
@@ -372,10 +435,10 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
           <AccordionTrigger className="py-3">Mileage Range</AccordionTrigger>
           <AccordionContent>
             <DualRangeSlider
-              min={0}
-              max={200000}
+              min={minMaxValues.mileage.min}
+              max={minMaxValues.mileage.max}
               step={1000}
-              defaultValue={[0, 200000]}
+              defaultValue={[minMaxValues.mileage.min, minMaxValues.mileage.max]}
               value={mileageRange}
               onValueChange={handleMileageRangeChange}
               formatValue={formatMileage}
