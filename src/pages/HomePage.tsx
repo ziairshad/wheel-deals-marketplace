@@ -47,14 +47,14 @@ const HomePage = () => {
           throw new Error('Failed to fetch car listings');
         }
         
-        // Ensure all car objects have the required regional_specs property
-        const carsWithRegionalSpecs = (carListings || []).map(car => ({
-          ...car,
-          regional_specs: car.regional_specs || null
-        }));
+        if (!carListings) {
+          setFilteredCars([]);
+          setLoading(false);
+          return;
+        }
         
-        // Use only the real listings from database
-        const allCars: UnifiedCar[] = carsWithRegionalSpecs;
+        // Use TypeScript casting to ensure type safety
+        const allCars: UnifiedCar[] = carListings as CarListingRow[];
         
         // Apply filtering
         const filtered = filterCars(allCars, filters);

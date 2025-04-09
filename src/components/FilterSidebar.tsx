@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Filter } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -23,7 +22,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import { emirates } from "@/data/cars";
 import { FilterOptions, UnifiedCar, getUniqueValues, getUniqueModelsByMake } from "@/utils/filter-utils";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, CarListingRow } from "@/integrations/supabase/client";
 
 interface FilterSidebarProps {
   filters: FilterOptions;
@@ -62,13 +61,14 @@ const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
           return;
         }
         
-        // Ensure all car objects have the required regional_specs property
-        const carsWithRegionalSpecs = (data || []).map(car => ({
-          ...car,
-          regional_specs: car.regional_specs || null
-        }));
+        if (!data) {
+          setAvailableCars([]);
+          setLoading(false);
+          return;
+        }
         
-        setAvailableCars(carsWithRegionalSpecs);
+        // Use TypeScript casting to ensure type safety
+        setAvailableCars(data as CarListingRow[]);
       } catch (err) {
         console.error("Error in fetchAvailableCars:", err);
       } finally {

@@ -1,4 +1,3 @@
-
 import { CarFormData } from "@/types/car";
 import { CarListingRow, supabase } from "@/integrations/supabase/client";
 
@@ -161,13 +160,12 @@ export async function fetchMyListings(userId: string): Promise<CarListingRow[]> 
       throw new Error('Failed to fetch listings');
     }
     
-    // Ensure the data includes regional_specs (even if null)
-    const listingsWithRegionalSpecs = (data || []).map(car => ({
-      ...car,
-      regional_specs: car.regional_specs || null
-    }));
+    if (!data) {
+      return [];
+    }
     
-    return listingsWithRegionalSpecs as CarListingRow[];
+    // Use TypeScript casting to ensure type safety
+    return data as CarListingRow[];
   } catch (error) {
     console.error("Error fetching listings:", error);
     throw error;
