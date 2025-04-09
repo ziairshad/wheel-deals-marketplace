@@ -1,4 +1,3 @@
-
 import { CarFormData } from "@/types/car";
 import { CarListingRow, supabase } from "@/integrations/supabase/client";
 
