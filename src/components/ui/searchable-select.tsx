@@ -52,6 +52,14 @@ export function SearchableSelect({
   // This ensures we always have a valid CommandGroup with items
   const hasOptions = safeOptions.length > 0
 
+  // Define specific handler function for item selection
+  const handleSelect = React.useCallback((currentValue: string) => {
+    if (currentValue) {
+      onChange(currentValue)
+      setOpen(false)
+    }
+  }, [onChange])
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -76,10 +84,7 @@ export function SearchableSelect({
                 <CommandItem
                   key={option.value}
                   value={option.value}
-                  onSelect={(currentValue) => {
-                    onChange(currentValue)
-                    setOpen(false)
-                  }}
+                  onSelect={handleSelect}
                 >
                   <Check
                     className={cn(

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
         if (error) {
           console.error("Error fetching car listings:", error);
+          setMakes([]);
+          setBodyTypes([]);
+          setLocations([]);
+          setRegionalSpecs([]);
+          setIsLoading(false);
           return;
         }
 
@@ -101,6 +107,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
         if (error) {
           console.error("Error fetching car listings:", error);
+          setModels([]);
           return;
         }
 
@@ -116,6 +123,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         setModels(getUniqueModelsByMake(allCars, filters.make));
       } catch (error) {
         console.error("Error fetching models:", error);
+        setModels([]);
       }
     };
 
