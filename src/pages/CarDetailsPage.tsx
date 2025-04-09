@@ -22,7 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import CarGallery from "@/components/CarGallery";
-import { supabase, CarListingRow } from "@/integrations/supabase/client";
+import { fetchCarById, CarListingRow } from "@/integrations/supabase/client";
 import { formatPrice, formatMileage } from "@/data/cars";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -35,17 +35,8 @@ const CarDetailsPage = () => {
   const { data: car, isLoading, error } = useQuery({
     queryKey: ['car', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('car_listings')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        throw new Error('Failed to fetch car details');
-      }
-
-      return data as CarListingRow;
+      if (!id) throw new Error('Car ID is required');
+      return await fetchCarById(id);
     }
   });
 

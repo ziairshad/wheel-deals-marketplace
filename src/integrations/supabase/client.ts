@@ -31,3 +31,18 @@ export type CarListingRow = {
   images: string[] | null;
   vin: string | null;
 }
+
+// Helper function to fetch car by id that handles type safety
+export const fetchCarById = async (id: string) => {
+  const { data, error } = await supabase
+    .from('car_listings')
+    .select('*')
+    .eq('id', id)
+    .single();
+    
+  if (error) {
+    throw new Error('Failed to fetch car details');
+  }
+  
+  return data as CarListingRow;
+};
