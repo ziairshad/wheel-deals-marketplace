@@ -104,9 +104,9 @@ const HomePage = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-1 container grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 py-8">
+      <main className="flex-1 container grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 py-8 relative">
         {/* Filter Sidebar (visible on larger screens) */}
-        <aside className="hidden lg:block h-[calc(100vh-160px)] sticky top-24">
+        <aside className="hidden lg:block h-fit sticky top-24">
           <FilterSidebar 
             filters={filters}
             onFilterChange={handleFilterChange}

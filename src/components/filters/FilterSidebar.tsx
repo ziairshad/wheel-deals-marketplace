@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -257,12 +256,12 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   ];
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="max-h-[calc(100vh-150px)] flex flex-col overflow-hidden">
       <div className="sticky top-0 bg-background pt-1 pb-3 z-10">
         <h2 className="text-xl font-semibold mb-2">Filter Vehicles</h2>
         <Separator />
       </div>
-      <div className="overflow-auto flex-1 space-y-4 pr-2">
+      <div className="overflow-y-auto flex-1 space-y-4 pr-2">
         <Accordion type="multiple" defaultValue={["make", "model", "price", "year"]}>
           <SelectFilter
             title="Make"
@@ -361,7 +360,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </Accordion>
 
         <Separator />
-        <Button variant="outline" className="w-full" onClick={handleResetFilters}>
+        <Button variant="outline" className="w-full mb-4" onClick={handleResetFilters}>
           Reset Filters
         </Button>
       </div>
