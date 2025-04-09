@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -23,7 +23,7 @@ interface SellCarPageContentProps {
 
 const SellCarPageContent: React.FC<SellCarPageContentProps> = ({ isEditMode = false }) => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [images, setImages] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -49,6 +49,15 @@ const SellCarPageContent: React.FC<SellCarPageContentProps> = ({ isEditMode = fa
       regionalSpecs: "",
     },
   });
+
+  // Fill in user contact info when profile is loaded
+  useEffect(() => {
+    if (user && profile) {
+      form.setValue("contactName", profile.full_name || "");
+      form.setValue("contactPhone", profile.phone_number || "");
+      form.setValue("contactEmail", user.email || "");
+    }
+  }, [user, profile, form]);
 
   const onSubmit = async (values: z.infer<typeof sellCarFormSchema>) => {
     if (!user) {

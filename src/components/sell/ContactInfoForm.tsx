@@ -31,7 +31,12 @@ const ContactInfoForm: React.FC = () => {
             <FormItem>
               <FormLabel>Name *</FormLabel>
               <FormControl>
-                <Input placeholder="Your full name" {...field} />
+                <Input 
+                  placeholder="Your full name" 
+                  {...field} 
+                  readOnly 
+                  className="bg-gray-100" 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -45,7 +50,12 @@ const ContactInfoForm: React.FC = () => {
             <FormItem>
               <FormLabel>Phone Number *</FormLabel>
               <FormControl>
-                <Input placeholder="Your phone number" {...field} />
+                <Input 
+                  placeholder="Your phone number" 
+                  {...field} 
+                  readOnly 
+                  className="bg-gray-100" 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -59,7 +69,12 @@ const ContactInfoForm: React.FC = () => {
             <FormItem className="md:col-span-2">
               <FormLabel>Email *</FormLabel>
               <FormControl>
-                <Input placeholder="Your email address" {...field} />
+                <Input 
+                  placeholder="Your email address" 
+                  {...field} 
+                  readOnly 
+                  className="bg-gray-100" 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

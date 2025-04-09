@@ -13,12 +13,13 @@ import {
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const isMobile = useIsMobile();
   
   // Update local search state when URL changes
@@ -27,6 +28,25 @@ const Header = () => {
     const searchParam = searchParams.get("search");
     setSearchQuery(searchParam || "");
   }, [location.search]);
+  
+  // Get user display name (prioritize profile, fallback to email)
+  const getUserDisplayName = () => {
+    if (profile?.full_name) return profile.full_name;
+    return user?.email || "";
+  };
+
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (profile?.full_name) {
+      return profile.full_name
+        .split(' ')
+        .map(name => name[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
+    }
+    return user?.email?.[0].toUpperCase() || "U";
+  };
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,13 +125,16 @@ const Header = () => {
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <UserCircle className="h-5 w-5" />
+                  <Button variant="ghost" size="icon" className="rounded-full p-0">
+                    <Avatar className="h-8 w-8">
+                      {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt={getUserDisplayName()} />}
+                      <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                    </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem className="text-muted-foreground">
-                    {user.email}
+                    {getUserDisplayName()}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate("/my-listings")}>
