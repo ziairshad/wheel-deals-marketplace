@@ -1,53 +1,57 @@
 
 import React from "react";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
-import "./App.css";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 import HomePage from "./pages/HomePage";
 import CarDetailsPage from "./pages/CarDetailsPage";
-import AuthPage from "./pages/AuthPage";
 import SellYourCarPage from "./pages/SellYourCarPage";
 import MyListingsPage from "./pages/MyListingsPage";
-import { AuthProvider } from "./contexts/AuthContext";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { Toaster } from "./components/ui/toaster";
+import AuthPage from "./pages/AuthPage";
+import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-function App() {
-  return (
-    <ThemeProvider>
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />}>
-              <Route index element={<HomePage />} />
-              <Route path="car/:id" element={<CarDetailsPage />} />
-              <Route path="auth" element={<AuthPage />} />
+const queryClient = new QueryClient();
+
+const App = () => (
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/car/:id" element={<CarDetailsPage />} />
               <Route 
-                path="sell" 
+                path="/sell" 
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requirePhoneVerification={true}>
                     <SellYourCarPage />
                   </ProtectedRoute>
                 } 
               />
               <Route 
-                path="my-listings" 
+                path="/my-listings" 
                 element={
                   <ProtectedRoute>
                     <MyListingsPage />
                   </ProtectedRoute>
                 } 
               />
+              <Route path="/auth" element={<AuthPage />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
-            </Route>
-          </Routes>
-          <Toaster />
-        </AuthProvider>
-      </BrowserRouter>
-    </ThemeProvider>
-  );
-}
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </React.StrictMode>
+);
 
 export default App;

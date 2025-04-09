@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 interface Profile {
@@ -35,6 +36,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const navigate = useNavigate();
 
   const fetchProfile = async (userId: string) => {
     setLoadingProfile(true);
@@ -101,7 +103,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) throw error;
-      // No navigation here, let the component handle it
+      navigate("/");
     } catch (error: any) {
       toast.error(error.message || "Failed to sign in.");
       throw error;
@@ -188,7 +190,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      // No navigation here, let the component handle it
+      navigate("/");
     } catch (error: any) {
       toast.error(error.message || "Failed to sign out.");
       throw error;
