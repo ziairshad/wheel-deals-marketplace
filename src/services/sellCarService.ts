@@ -21,7 +21,7 @@ export async function submitCarListing(formData: CarFormData, userId: string, im
       contact_name: formData.contactName,
       contact_phone: formData.contactPhone,
       contact_email: formData.contactEmail,
-      status: 'pending',
+      status: 'available', // changed from 'pending' to 'available'
       vin: formData.vin,
     };
 

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Car, Home, Search, UserCircle, LogOut } from "lucide-react";
+import { Car, Home, Search, UserCircle, LogOut, ClipboardList } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 
 const Header = () => {
@@ -101,6 +102,11 @@ const Header = () => {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem className="text-muted-foreground">
                     {user.email}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/my-listings")}>
+                    <ClipboardList className="mr-2 h-4 w-4" />
+                    <span>My Listings</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => signOut()}>
                     <LogOut className="mr-2 h-4 w-4" />

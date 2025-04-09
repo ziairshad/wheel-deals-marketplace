@@ -5,13 +5,12 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FilterSidebar from "@/components/FilterSidebar";
 import CarCard from "@/components/CarCard";
-import { cars } from "@/data/cars";
+import { cars as sampleCars } from "@/data/cars";
 import { 
   FilterOptions, 
   filterCars, 
   initialFilterOptions, 
-  sortOptions, 
-  SortOption 
+  sortOptions 
 } from "@/utils/filter-utils";
 import { 
   Select, 
@@ -20,12 +19,74 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { supabase, CarListingRow } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const HomePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [filters, setFilters] = useState<FilterOptions>(initialFilterOptions);
   const [activeSort, setActiveSort] = useState<string>("latest");
+  const [allCars, setAllCars] = useState<(typeof sampleCars[0] | CarListingRow)[]>([...sampleCars]);
+  const [loading, setLoading] = useState(true);
+  
+  // Fetch cars from Supabase
+  useEffect(() => {
+    const fetchCars = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("car_listings")
+          .select("*")
+          .eq("status", "available");
+          
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          // Transform Supabase data to match the format of sample cars
+          const transformedCars = data.map(car => ({
+            ...car,
+            id: car.id,
+            price: car.price,
+            mileage: car.mileage,
+            year: car.year,
+            make: car.make,
+            model: car.model,
+            bodyType: car.body_type || undefined,
+            transmission: car.transmission || undefined,
+            fuelType: car.fuel_type || undefined,
+            color: car.exterior_color || undefined,
+            location: car.location,
+            description: car.description || undefined,
+            images: car.images || [],
+            features: [],
+            seller: {
+              name: car.contact_name || "Seller",
+              phone: car.contact_phone || "Not provided",
+              email: car.contact_email || "Not provided"
+            }
+          }));
+          
+          // Combine sample cars with real cars from database
+          setAllCars([...sampleCars, ...transformedCars]);
+        }
+      } catch (error) {
+        console.error("Error fetching car listings:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load car listings. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchCars();
+  }, [toast]);
   
   // Parse search query from URL when component mounts or URL changes
   useEffect(() => {
@@ -62,7 +123,7 @@ const HomePage = () => {
   };
   
   // Apply filters and sorting
-  const filteredCars = filterCars(cars, filters);
+  const filteredCars = filterCars(allCars, filters);
   const sortedCars = [...filteredCars].sort(
     sortOptions.find(option => option.id === activeSort)?.sortFn || 
     sortOptions[0].sortFn
@@ -89,7 +150,7 @@ const HomePage = () => {
         
         <div className="flex flex-col md:flex-row gap-6">
           <FilterSidebar 
-            cars={cars}
+            cars={allCars}
             filters={filters}
             onFilterChange={handleFilterChange}
           />
@@ -97,7 +158,7 @@ const HomePage = () => {
           <div className="flex-1">
             <div className="flex justify-between items-center mb-6">
               <div className="text-muted-foreground">
-                {sortedCars.length} {sortedCars.length === 1 ? 'car' : 'cars'} found
+                {loading ? 'Loading...' : `${sortedCars.length} ${sortedCars.length === 1 ? 'car' : 'cars'} found`}
               </div>
               
               <div className="flex items-center gap-2">
@@ -122,7 +183,11 @@ const HomePage = () => {
               </div>
             </div>
             
-            {sortedCars.length > 0 ? (
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <p>Loading cars...</p>
+              </div>
+            ) : sortedCars.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {sortedCars.map((car) => (
                   <CarCard key={car.id} car={car} />
