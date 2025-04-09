@@ -1,19 +1,16 @@
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-
-interface Profile {
-  id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  phone_number: string | null;
-  phone_verified: boolean | null;
-  created_at: string;
-  updated_at: string;
-}
+import { useProfile, Profile } from "@/hooks/useProfile";
+import { 
+  checkIfEmailExists, 
+  checkIfPhoneExists, 
+  sendPhoneVerificationCode, 
+  verifyPhoneWithCode 
+} from "@/utils/authUtils";
 
 type AuthContextType = {
   session: Session | null;
@@ -31,33 +28,11 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [session, setSession] = React.useState<Session | null>(null);
+  const [user, setUser] = React.useState<User | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const { profile, loadingProfile, fetchProfile, setProfile } = useProfile();
   const navigate = useNavigate();
-
-  const fetchProfile = async (userId: string) => {
-    setLoadingProfile(true);
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-      } else {
-        setProfile(data);
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoadingProfile(false);
-    }
-  };
 
   useEffect(() => {
     // Set up the auth state listener first
@@ -112,32 +87,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName: string, phoneNumber: string) => {
     try {
-      // Check if email is already registered using signInWithOtp
-      const { error: emailCheckError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: false // Only check if email exists, don't create a magic link
-        }
-      });
-      
-      // If no error, email doesn't exist. If error is "Email not confirmed", it exists
-      if (!emailCheckError || emailCheckError.message.includes("Email not confirmed")) {
+      // Check if email is already registered
+      const emailExists = await checkIfEmailExists(email);
+      if (emailExists) {
         toast.error("This email is already registered. Please use a different email address.");
         throw new Error("Email already in use");
       }
 
-      // Check if phone number already exists in profiles
-      const { data: existingUserWithPhone, error: phoneCheckError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('phone_number', phoneNumber)
-        .maybeSingle();
-
-      if (phoneCheckError) {
-        console.error("Error checking phone number:", phoneCheckError);
-      }
-
-      if (existingUserWithPhone) {
+      // Check if phone number already exists
+      const phoneExists = await checkIfPhoneExists(phoneNumber);
+      if (phoneExists) {
         toast.error("This phone number is already registered. Please use a different phone number.");
         throw new Error("Phone number already in use");
       }
@@ -174,51 +133,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const sendPhoneVerification = async (phoneNumber: string) => {
-    try {
-      // Don't require the user to be logged in when first verifying during signup
-      const response = await supabase.functions.invoke("verify-phone", {
-        body: { 
-          phoneNumber, 
-          action: "send" 
-        },
-      });
-
-      if (response.error) {
-        throw new Error(response.error.message || "Failed to send verification code");
-      }
-
-      toast.success("Verification code sent to your phone");
-      return response.data.code; // In dev mode, we return the code for easier testing
-    } catch (error: any) {
-      toast.error(error.message || "Failed to send verification code");
-      throw error;
-    }
+    return sendPhoneVerificationCode(phoneNumber);
   };
 
   const verifyPhoneNumber = async (phoneNumber: string, code: string, userId: string) => {
-    try {
-      const response = await supabase.functions.invoke("verify-phone", {
-        body: { 
-          phoneNumber, 
-          code,
-          userId,
-          action: "verify" 
-        },
-      });
-
-      if (response.error) {
-        throw new Error(response.error.message || "Failed to verify phone number");
-      }
-
+    const success = await verifyPhoneWithCode(phoneNumber, code, userId);
+    
+    if (success) {
       // Refresh profile data
       await fetchProfile(userId);
-      
-      toast.success("Phone number verified successfully");
-      return true;
-    } catch (error: any) {
-      toast.error(error.message || "Failed to verify phone number");
-      return false;
     }
+    
+    return success;
   };
 
   const signOut = async () => {
