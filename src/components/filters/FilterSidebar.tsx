@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -256,8 +257,8 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   ];
 
   return (
-    <div className="max-h-[calc(100vh-150px)] flex flex-col overflow-hidden">
-      <div className="sticky top-0 bg-background pt-1 pb-3 z-10">
+    <div className="bg-white border rounded-lg shadow-sm p-4 max-h-[calc(100vh-150px)] flex flex-col overflow-hidden">
+      <div className="sticky top-0 bg-white pt-1 pb-3 z-10">
         <h2 className="text-xl font-semibold mb-2">Filter Vehicles</h2>
         <Separator />
       </div>
