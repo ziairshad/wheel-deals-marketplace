@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Menu, X, User } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -15,7 +16,8 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { useMobile } from "@/hooks/use-mobile";
 
 const Header = () => {
-  const { isAuthenticated, user, signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const isAuthenticated = !!user;
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -62,8 +64,8 @@ const Header = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.avatar_url || ""} alt={user?.name || "Avatar"} />
-                      <AvatarFallback>{user?.name?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+                      <AvatarImage src={user?.avatar_url || user?.user_metadata?.avatar_url || ""} alt={user?.user_metadata?.name || "Avatar"} />
+                      <AvatarFallback>{(user?.user_metadata?.name || "U").charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <span className="sr-only">Open user menu</span>
                   </Button>
@@ -71,7 +73,7 @@ const Header = () => {
                 <DropdownMenuContent align="end">
                   <div className="grid gap-2 px-2 py-1">
                     <div className="grid gap-0.5">
-                      <p className="text-sm font-medium text-foreground">{user?.name}</p>
+                      <p className="text-sm font-medium text-foreground">{user?.user_metadata?.name || user?.email}</p>
                       <p className="text-xs text-muted-foreground">{user?.email}</p>
                     </div>
                   </div>
