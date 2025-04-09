@@ -26,6 +26,7 @@ export type Database = {
           mileage: number
           model: string
           price: number
+          regional_specs: string | null
           status: string
           transmission: string | null
           user_id: string
@@ -48,6 +49,7 @@ export type Database = {
           mileage: number
           model: string
           price: number
+          regional_specs?: string | null
           status?: string
           transmission?: string | null
           user_id: string
@@ -70,6 +72,7 @@ export type Database = {
           mileage?: number
           model?: string
           price?: number
+          regional_specs?: string | null
           status?: string
           transmission?: string | null
           user_id?: string
