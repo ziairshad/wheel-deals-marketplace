@@ -8,22 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { formatPrice, formatMileage } from "@/data/cars";
 import { cn } from "@/lib/utils";
-
-type CarListing = {
-  id: string;
-  make: string;
-  model: string;
-  year: number;
-  price: number;
-  mileage: number;
-  status: string;
-  images: string[];
-  created_at: string;
-  location: string;
-};
+import { CarListing } from "@/types/car";
+import { fetchMyListings } from "@/services/sellCarService";
 
 const MyListingsPage = () => {
   const { user } = useAuth();
@@ -38,20 +26,11 @@ const MyListingsPage = () => {
       return;
     }
 
-    const fetchListings = async () => {
+    const getListings = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from('car_listings')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          throw error;
-        }
-
-        setListings(data || []);
+        const data = await fetchMyListings(user.id);
+        setListings(data);
       } catch (err) {
         console.error("Error fetching listings:", err);
         setError("Failed to load your listings. Please try again later.");
@@ -60,7 +39,7 @@ const MyListingsPage = () => {
       }
     };
 
-    fetchListings();
+    getListings();
   }, [user, navigate]);
 
   const getStatusColor = (status: string) => {
