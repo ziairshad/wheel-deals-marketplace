@@ -3,6 +3,10 @@
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  max-height: 100vh; /* Limit to viewport height */
+  overflow-y: auto; /* Allow scrolling when needed */
+  overscroll-behavior-y: none; /* Prevent bouncy scrolling
+*/
 }
 
 .logo {

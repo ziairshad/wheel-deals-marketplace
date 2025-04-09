@@ -82,15 +82,24 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
+    overflow-y: auto; // Ensure vertical scrolling is controlled
+    max-height: 100%;
   }
 
-  body {
+  html, body {
     @apply bg-background text-foreground;
+    max-height: 100vh; // Limit to viewport height
+    overflow-y: auto; // Allow scrolling when needed
+    overscroll-behavior-y: none; // Prevent bouncy scrolling on some browsers
+  }
+
+  #root {
+    max-height: 100vh;
+    overflow-y: auto;
+    overscroll-behavior-y: none;
   }
 }
 
