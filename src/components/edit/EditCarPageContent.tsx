@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -11,8 +12,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import VehicleInfoForm from "@/components/sell/VehicleInfoForm";
 import ContactInfoForm from "@/components/sell/ContactInfoForm";
-import { sellCarFormSchema } from "@/components/sell/SellCarFormSchema";  // Changed import
+import { sellCarFormSchema } from "@/components/sell/SellCarFormSchema";
 import { submitCarListing } from "@/services/sellCarService";
+import { CarFormData } from "@/types/car";
 
 interface EditCarPageContentProps {
   carId: string;
@@ -31,8 +33,8 @@ const EditCarPageContent: React.FC<EditCarPageContentProps> = ({ carId }) => {
     queryFn: () => fetchCarById(carId)
   });
   
-  const form = useForm<z.infer<typeof sellCarFormSchema>>({  // Changed type
-    resolver: zodResolver(sellCarFormSchema),  // Changed schema
+  const form = useForm<z.infer<typeof sellCarFormSchema>>({
+    resolver: zodResolver(sellCarFormSchema),
     defaultValues: {
       make: "",
       model: "",
@@ -87,7 +89,7 @@ const EditCarPageContent: React.FC<EditCarPageContentProps> = ({ carId }) => {
     }
   }, [car, form]);
   
-  const onSubmit = async (data: z.infer<typeof sellCarFormSchema>) => {  // Changed type
+  const onSubmit = async (data: z.infer<typeof sellCarFormSchema>) => {
     if (!user) {
       toast({
         title: "Error",
@@ -100,7 +102,26 @@ const EditCarPageContent: React.FC<EditCarPageContentProps> = ({ carId }) => {
     setIsSubmitting(true);
     
     try {
-      await submitCarListing(data, user.id, images, carId, existingImages);
+      // Ensure all required fields are present in the data passed to submitCarListing
+      const carFormData: CarFormData = {
+        make: data.make,
+        model: data.model,
+        year: data.year,
+        price: data.price,
+        mileage: data.mileage,
+        bodyType: data.bodyType,
+        transmission: data.transmission,
+        fuelType: data.fuelType,
+        color: data.color,
+        location: data.location,
+        description: data.description,
+        contactName: data.contactName,
+        contactPhone: data.contactPhone,
+        contactEmail: data.contactEmail,
+        vin: data.vin,
+      };
+      
+      await submitCarListing(carFormData, user.id, images, carId, existingImages);
       
       toast({
         title: "Success",
