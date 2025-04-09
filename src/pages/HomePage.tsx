@@ -2,9 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Car } from "lucide-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import CarCard from "@/components/CarCard";
 import FilterSidebar from "@/components/FilterSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -12,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CarListingRow, supabase } from "@/integrations/supabase/client";
 import { UnifiedCar, filterCars, initialFilterOptions, sortOptions, FilterOptions } from "@/utils/filter-utils";
+import CarCard from "@/components/CarCard";
 
 const HomePage = () => {
   const [filteredCars, setFilteredCars] = useState<UnifiedCar[]>([]);
@@ -77,81 +75,75 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <div className="container grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 py-8">
+      {/* Filter Sidebar (visible on larger screens) */}
+      <aside className="hidden lg:block">
+        <FilterSidebar 
+          filters={filters}
+          onFilterChange={handleFilterChange}
+        />
+      </aside>
       
-      <main className="flex-1 container grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 py-8">
-        {/* Filter Sidebar (visible on larger screens) */}
-        <aside className="hidden lg:block">
-          <FilterSidebar 
-            filters={filters}
-            onFilterChange={handleFilterChange}
-          />
-        </aside>
-        
-        {/* Mobile Filter Button (visible on smaller screens) */}
-        {isMobile && (
-          <Button 
-            onClick={toggleFilters}
-            className="lg:hidden bg-car-blue hover:bg-blue-700 mb-4"
-          >
-            {isFilterOpen ? "Close Filters" : "Open Filters"}
-          </Button>
-        )}
-        
-        {/* Mobile Filter Overlay */}
-        {isMobile && isFilterOpen && (
-          <div className="fixed inset-0 bg-black/50 z-50">
-            <aside className="absolute top-0 left-0 w-80 h-full bg-white shadow-lg p-4">
-              <FilterSidebar 
-                filters={filters}
-                onFilterChange={handleFilterChange}
-              />
-              <Button onClick={toggleFilters} className="mt-4 w-full">Close Filters</Button>
-            </aside>
+      {/* Mobile Filter Button (visible on smaller screens) */}
+      {isMobile && (
+        <Button 
+          onClick={toggleFilters}
+          className="lg:hidden bg-car-blue hover:bg-blue-700 mb-4"
+        >
+          {isFilterOpen ? "Close Filters" : "Open Filters"}
+        </Button>
+      )}
+      
+      {/* Mobile Filter Overlay */}
+      {isMobile && isFilterOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50">
+          <aside className="absolute top-0 left-0 w-80 h-full bg-white shadow-lg p-4">
+            <FilterSidebar 
+              filters={filters}
+              onFilterChange={handleFilterChange}
+            />
+            <Button onClick={toggleFilters} className="mt-4 w-full">Close Filters</Button>
+          </aside>
+        </div>
+      )}
+      
+      {/* Car Listings */}
+      <section>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="space-y-3">
+                <Skeleton className="aspect-video rounded-md" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[250px]" />
+                  <Skeleton className="h-4 w-[200px]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <Car className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+            <h3 className="text-lg font-medium mb-2">Failed to load cars</h3>
+            <p className="text-muted-foreground">{error}</p>
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+          </div>
+        ) : filteredCars.length === 0 ? (
+          <div className="text-center py-12">
+            <Car className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+            <h3 className="text-lg font-medium mb-2">No cars found</h3>
+            <p className="text-muted-foreground">
+              No cars match your current filter criteria.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCars.map((car) => (
+              <CarCard key={car.id} car={car} />
+            ))}
           </div>
         )}
-        
-        {/* Car Listings */}
-        <section>
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <Skeleton className="aspect-video rounded-md" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-[250px]" />
-                    <Skeleton className="h-4 w-[200px]" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <Car className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-              <h3 className="text-lg font-medium mb-2">Failed to load cars</h3>
-              <p className="text-muted-foreground">{error}</p>
-              <Button onClick={() => window.location.reload()}>Retry</Button>
-            </div>
-          ) : filteredCars.length === 0 ? (
-            <div className="text-center py-12">
-              <Car className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-              <h3 className="text-lg font-medium mb-2">No cars found</h3>
-              <p className="text-muted-foreground">
-                No cars match your current filter criteria.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCars.map((car) => (
-                <CarCard key={car.id} car={car} />
-              ))}
-            </div>
-          )}
-        </section>
-      </main>
-      
-      <Footer />
+      </section>
     </div>
   );
 };
