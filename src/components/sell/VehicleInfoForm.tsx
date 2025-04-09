@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import { Info } from "lucide-react";
@@ -34,12 +33,14 @@ interface VehicleInfoFormProps {
   images: File[];
   setImages: React.Dispatch<React.SetStateAction<File[]>>;
   existingImages?: string[];
+  onExistingImagesChange?: (images: string[]) => void;
 }
 
 const VehicleInfoForm: React.FC<VehicleInfoFormProps> = ({ 
   images, 
   setImages,
-  existingImages = [] 
+  existingImages = [],
+  onExistingImagesChange
 }) => {
   const form = useFormContext();
 
@@ -266,7 +267,8 @@ const VehicleInfoForm: React.FC<VehicleInfoFormProps> = ({
       <PhotoUploader 
         images={images} 
         setImages={setImages} 
-        existingImages={existingImages} 
+        existingImages={existingImages}
+        onExistingImagesChange={onExistingImagesChange}
       />
     </div>
   );

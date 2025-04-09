@@ -29,7 +29,7 @@ export async function fetchCarById(carId: string) {
   }
 }
 
-export async function submitCarListing(formData: CarFormData, userId: string, images: File[], editId?: string) {
+export async function submitCarListing(formData: CarFormData, userId: string, images: File[], editId?: string, existingImages: string[] = []) {
   try {
     // Prepare the car listing data
     const carListingData = {
@@ -81,10 +81,11 @@ export async function submitCarListing(formData: CarFormData, userId: string, im
       carId = carData.id;
     }
 
+    // Track all image URLs (both existing and new)
+    let allImageUrls = [...existingImages];
+
     // Only process images if we have new ones to upload
     if (images.length > 0) {
-      const imageUrls = [];
-
       // Upload images to Supabase Storage
       for (let i = 0; i < images.length; i++) {
         const file = images[i];
@@ -132,23 +133,23 @@ export async function submitCarListing(formData: CarFormData, userId: string, im
             .getPublicUrl(fileName);
 
           if (publicUrlData) {
-            imageUrls.push(publicUrlData.publicUrl);
+            allImageUrls.push(publicUrlData.publicUrl);
           }
         } catch (error) {
           console.error("Error in image upload process:", error);
         }
       }
+    }
 
-      // Update car listing with image URLs if we have any
-      if (imageUrls.length > 0) {
-        const { error: updateError } = await supabase
-          .from('car_listings')
-          .update({ images: imageUrls })
-          .eq('id', carId);
+    // Update car listing with all image URLs (existing + new)
+    if (allImageUrls.length > 0) {
+      const { error: updateError } = await supabase
+        .from('car_listings')
+        .update({ images: allImageUrls })
+        .eq('id', carId);
 
-        if (updateError) {
-          console.error("Error updating car listing with images:", updateError);
-        }
+      if (updateError) {
+        console.error("Error updating car listing with images:", updateError);
       }
     }
 

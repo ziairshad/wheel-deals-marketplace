@@ -1,37 +1,39 @@
 
-import React, { useState, useEffect } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { fetchCarById } from "@/integrations/supabase/client";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Car, ArrowLeft } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import VehicleInfoForm from "@/components/sell/VehicleInfoForm";
 import ContactInfoForm from "@/components/sell/ContactInfoForm";
-import { fetchCarById, submitCarListing } from "@/services/sellCarService";
-import { CarFormData, convertToFormData } from "@/types/car";
-import { sellCarFormSchema } from "@/components/sell/SellCarFormSchema";
+import { CarFormSchema } from "@/components/sell/SellCarFormSchema";
+import { submitCarListing } from "@/services/sellCarService";
 
 interface EditCarPageContentProps {
   carId: string;
 }
 
 const EditCarPageContent: React.FC<EditCarPageContentProps> = ({ carId }) => {
-  const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [images, setImages] = useState<File[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const form = useForm<z.infer<typeof sellCarFormSchema>>({
-    resolver: zodResolver(sellCarFormSchema),
+  const { data: car, isLoading, error } = useQuery({
+    queryKey: ['car', carId],
+    queryFn: () => fetchCarById(carId)
+  });
+  
+  const form = useForm<z.infer<typeof CarFormSchema>>({
+    resolver: zodResolver(CarFormSchema),
     defaultValues: {
       make: "",
       model: "",
@@ -50,139 +52,124 @@ const EditCarPageContent: React.FC<EditCarPageContentProps> = ({ carId }) => {
       vin: "",
     },
   });
-
-  // Fetch car data for editing
+  
+  // Initialize form with car data when it's loaded
   useEffect(() => {
-    const fetchCarData = async () => {
-      try {
-        setLoading(true);
-        console.log("Fetching car with ID:", carId);
-        const carData = await fetchCarById(carId);
-        
-        if (carData) {
-          console.log("Fetched car data:", carData);
-          
-          // Convert from API format to form format
-          const formData = convertToFormData(carData);
-          console.log("Converted form data:", formData);
-          
-          // Set form values
-          Object.entries(formData).forEach(([key, value]) => {
-            form.setValue(key as any, value);
-          });
-          
-          // Store existing images
-          if (carData.images && carData.images.length > 0) {
-            setExistingImages(carData.images);
-            console.log("Setting existing images:", carData.images);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching car data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load car details. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
+    if (car) {
+      console.log("Fetched car data:", car);
+      
+      // Convert data types to match form schema
+      const formData = {
+        make: car.make,
+        model: car.model,
+        year: car.year.toString(),
+        price: car.price.toString(),
+        mileage: car.mileage.toString(),
+        bodyType: car.body_type || "",
+        transmission: car.transmission || "",
+        fuelType: car.fuel_type || "",
+        color: car.exterior_color || "",
+        location: car.location,
+        description: car.description || "",
+        contactName: car.contact_name || "",
+        contactPhone: car.contact_phone || "",
+        contactEmail: car.contact_email || "",
+        vin: car.vin || "",
+      };
+      
+      console.log("Converted form data:", formData);
+      form.reset(formData);
+      
+      // Set existing images
+      if (car.images && car.images.length > 0) {
+        console.log("Setting existing images:", car.images);
+        setExistingImages(car.images);
       }
-    };
-    
-    fetchCarData();
-  }, [carId, form, toast]);
-
-  const onSubmit = async (values: z.infer<typeof sellCarFormSchema>) => {
+    }
+  }, [car, form]);
+  
+  const onSubmit = async (data: z.infer<typeof CarFormSchema>) => {
     if (!user) {
       toast({
         title: "Error",
-        description: "You must be logged in to update a listing",
+        description: "You must be logged in to edit a listing",
         variant: "destructive",
       });
       return;
     }
-
+    
+    setIsSubmitting(true);
+    
     try {
-      setUploading(true);
+      await submitCarListing(data, user.id, images, carId, existingImages);
       
-      await submitCarListing(values as CarFormData, user.id, images, carId);
-
       toast({
-        title: "Listing updated!",
-        description: "Your car listing has been updated successfully.",
+        title: "Success",
+        description: "Your listing has been updated",
       });
       
-      navigate('/my-listings');
+      navigate(`/car/${carId}`);
     } catch (error) {
       console.error("Error updating listing:", error);
       toast({
         title: "Error",
-        description: "There was an error updating your listing. Please try again.",
+        description: "There was a problem updating your listing",
         variant: "destructive",
       });
     } finally {
-      setUploading(false);
+      setIsSubmitting(false);
     }
   };
-
+  
+  if (isLoading) {
+    return <div className="container py-8">Loading car details...</div>;
+  }
+  
+  if (error) {
+    return (
+      <div className="container py-8">
+        <p className="text-red-500">Error loading car details. Please try again.</p>
+      </div>
+    );
+  }
+  
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <div className="container py-8">
+      <h1 className="text-3xl font-bold mb-6">Edit Your Car Listing</h1>
       
-      <main className="flex-1 container py-8 max-w-3xl">
-        <div className="mb-6">
-          <Link 
-            to="/my-listings" 
-            className="inline-flex items-center text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Back to my listings
-          </Link>
-        </div>
-        
-        <div className="flex items-center mb-6">
-          <Car className="h-8 w-8 text-car-blue mr-3" />
-          <h1 className="text-3xl font-bold">Edit Your Car</h1>
-        </div>
-        
-        {loading ? (
-          <div className="flex justify-center my-12">
-            <p>Loading car details...</p>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <div className="bg-white rounded-lg border shadow-sm p-6">
+            <VehicleInfoForm 
+              images={images} 
+              setImages={setImages} 
+              existingImages={existingImages}
+              onExistingImagesChange={setExistingImages}
+            />
           </div>
-        ) : (
-          <>
-            <p className="text-muted-foreground mb-8">
-              Update your car listing details below. All fields marked with * are required.
-            </p>
-            
-            <FormProvider {...form}>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                  <VehicleInfoForm 
-                    images={images} 
-                    setImages={setImages} 
-                    existingImages={existingImages}
-                  />
-                  <ContactInfoForm />
-                  
-                  <div className="flex justify-center mt-8">
-                    <Button 
-                      type="submit" 
-                      size="lg" 
-                      className="px-8 bg-car-blue hover:bg-blue-700"
-                      disabled={uploading}
-                    >
-                      {uploading ? "Updating..." : "Update Listing"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </FormProvider>
-          </>
-        )}
-      </main>
-      
-      <Footer />
+          
+          <div className="bg-white rounded-lg border shadow-sm p-6">
+            <ContactInfoForm />
+          </div>
+          
+          <div className="flex justify-end gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate("/my-listings")}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              className="bg-car-blue hover:bg-blue-700"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Updating..." : "Update Listing"}
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 };

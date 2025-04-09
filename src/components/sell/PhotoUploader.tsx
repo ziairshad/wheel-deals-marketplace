@@ -8,12 +8,14 @@ interface PhotoUploaderProps {
   images: File[];
   setImages: React.Dispatch<React.SetStateAction<File[]>>;
   existingImages?: string[];
+  onExistingImagesChange?: (images: string[]) => void;
 }
 
 const PhotoUploader: React.FC<PhotoUploaderProps> = ({ 
   images, 
   setImages,
-  existingImages = []
+  existingImages = [],
+  onExistingImagesChange
 }) => {
   const [localExistingImages, setLocalExistingImages] = useState<string[]>([]);
   
@@ -39,7 +41,13 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({
   };
   
   const removeExistingImage = (index: number) => {
-    setLocalExistingImages(localExistingImages.filter((_, i) => i !== index));
+    const updatedExistingImages = localExistingImages.filter((_, i) => i !== index);
+    setLocalExistingImages(updatedExistingImages);
+    
+    // Notify parent component about the change if callback exists
+    if (onExistingImagesChange) {
+      onExistingImagesChange(updatedExistingImages);
+    }
   };
 
   return (
