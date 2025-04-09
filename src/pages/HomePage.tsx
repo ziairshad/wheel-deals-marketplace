@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Car, SortDesc } from "lucide-react";
@@ -18,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CarListingRow, supabase } from "@/integrations/supabase/client";
 import { UnifiedCar, filterCars, initialFilterOptions, sortOptions, FilterOptions } from "@/utils/filter-utils";
+import { placeholderCars } from "@/utils/placeholder-cars";
 
 const HomePage = () => {
   const [filteredCars, setFilteredCars] = useState<UnifiedCar[]>([]);
@@ -62,14 +64,26 @@ const HomePage = () => {
           throw new Error('Failed to fetch car listings');
         }
         
-        if (!carListings) {
-          setFilteredCars([]);
-          setLoading(false);
-          return;
+        // Use placeholder cars if no data from Supabase or in development mode
+        let allCars: UnifiedCar[];
+        if (!carListings || carListings.length === 0) {
+          // Use placeholder cars since there's no data from Supabase
+          console.log("Using placeholder cars data");
+          allCars = [...placeholderCars];
+          toast({
+            title: "Using placeholder data",
+            description: "Showing sample car listings for demonstration",
+            duration: 3000,
+          });
+        } else {
+          // Use TypeScript casting to ensure type safety
+          allCars = carListings as CarListingRow[];
+          
+          // In development, add placeholder cars to ensure a good variety
+          if (import.meta.env.DEV) {
+            allCars = [...allCars, ...placeholderCars];
+          }
         }
-        
-        // Use TypeScript casting to ensure type safety
-        const allCars: UnifiedCar[] = carListings as CarListingRow[];
         
         // Apply filtering
         const filtered = filterCars(allCars, filters);
@@ -83,11 +97,22 @@ const HomePage = () => {
         console.error("Error in fetchData:", error);
         setError("Failed to load cars. Please try again later.");
         setLoading(false);
+        
+        // Fallback to placeholder cars if there's an error
+        const filtered = filterCars(placeholderCars, filters);
+        const sorted = [...filtered].sort(selectedSort.sortFn);
+        setFilteredCars(sorted);
+        
+        toast({
+          title: "Error loading data",
+          description: "Showing placeholder cars instead",
+          variant: "destructive",
+        });
       }
     };
     
     fetchData();
-  }, [filters, selectedSort]);
+  }, [filters, selectedSort, toast]);
 
   const handleFilterChange = (newFilters: FilterOptions) => {
     setFilters(newFilters);
