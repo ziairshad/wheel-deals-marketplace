@@ -43,10 +43,14 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   const [mileageRange, setMileageRange] = useState<number[]>([0, 200000]);
   const [priceRange, setPriceRange] = useState<number[]>([0, 100000]);
   const [yearRange, setYearRange] = useState<number[]>([1990, 2024]);
+  
+  // Initialize loading state
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchFilterData = async () => {
       try {
+        setIsLoading(true);
         const { data: carListings, error } = await supabase
           .from("car_listings")
           .select("*");
@@ -56,8 +60,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
           return;
         }
 
-        if (!carListings) {
-          console.log("No car listings found.");
+        if (!carListings || !Array.isArray(carListings)) {
+          console.log("No car listings found or data is not an array.");
+          setMakes([]);
+          setBodyTypes([]);
+          setLocations([]);
+          setRegionalSpecs([]);
+          setIsLoading(false);
           return;
         }
 
@@ -68,8 +77,10 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         setBodyTypes(getUniqueValues(allCars, "bodyType"));
         setLocations(getUniqueValues(allCars, "location"));
         setRegionalSpecs(getUniqueValues(allCars, "regionalSpecs"));
+        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching filter data:", error);
+        setIsLoading(false);
       }
     };
 
@@ -79,6 +90,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   useEffect(() => {
     const fetchModels = async () => {
       try {
+        if (!filters.make) {
+          setModels([]);
+          return;
+        }
+        
         const { data: carListings, error } = await supabase
           .from("car_listings")
           .select("*");
@@ -88,8 +104,9 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
           return;
         }
 
-        if (!carListings) {
-          console.log("No car listings found.");
+        if (!carListings || !Array.isArray(carListings)) {
+          console.log("No car listings found or data is not an array.");
+          setModels([]);
           return;
         }
 
@@ -103,7 +120,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     };
 
     fetchModels();
-  }, [filters.make, filters.model]);
+  }, [filters.make]);
 
   const handleMakeChange = (make: string) => {
     onFilterChange({ ...filters, make, model: null });
@@ -194,6 +211,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   };
 
   // Convert the arrays to format required by SearchableSelect
+  // Always provide a fallback empty array for safety
   const makeOptions = makes?.map(make => ({ label: make, value: make })) || [];
   const modelOptions = models?.map(model => ({ label: model, value: model })) || [];
 

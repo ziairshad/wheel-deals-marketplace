@@ -49,6 +49,9 @@ export function SearchableSelect({
   
   const selectedOption = safeOptions.find(option => option.value === value)
 
+  // This ensures we always have a valid CommandGroup with items
+  const hasOptions = safeOptions.length > 0
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -67,26 +70,28 @@ export function SearchableSelect({
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandEmpty>{notFoundText}</CommandEmpty>
-          <CommandGroup className="max-h-[200px] overflow-auto">
-            {safeOptions.map((option) => (
-              <CommandItem
-                key={option.value}
-                value={option.value}
-                onSelect={(currentValue) => {
-                  onChange(currentValue)
-                  setOpen(false)
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === option.value ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {option.label}
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          {hasOptions && (
+            <CommandGroup className="max-h-[200px] overflow-auto">
+              {safeOptions.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={option.value}
+                  onSelect={(currentValue) => {
+                    onChange(currentValue)
+                    setOpen(false)
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === option.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {option.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
         </Command>
       </PopoverContent>
     </Popover>
