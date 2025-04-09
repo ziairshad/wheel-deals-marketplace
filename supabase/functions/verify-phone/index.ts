@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
@@ -31,7 +32,14 @@ serve(async (req) => {
       },
     });
 
-    // Get the request body
+    // Get the session to verify the user is authenticated
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    // For this demo, we'll just simulate sending and verifying OTPs
+    // In a production app, you would integrate with an SMS provider like Twilio
+
     const { phoneNumber, action, code, userId } = await req.json() as RequestBody;
 
     // Validate UAE phone number format (starts with +971)
@@ -48,9 +56,16 @@ serve(async (req) => {
     }
 
     if (action === "send") {
-      // No longer requiring user to be logged in for sending verification code
-      // This allows verification during signup before auth is complete
-      
+      if (!session) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized" }),
+          { 
+            status: 401, 
+            headers: { ...corsHeaders, "Content-Type": "application/json" } 
+          }
+        );
+      }
+
       // Generate a 6-digit OTP code
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       
@@ -59,23 +74,10 @@ serve(async (req) => {
       expiresAt.setMinutes(expiresAt.getMinutes() + 5);
 
       // Store the OTP in the database
-      // If during signup, we don't have the user's ID yet
-      let userIdForOtp = null;
-      
-      // If no explicit userId provided, try to get from session
-      if (!userId) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          userIdForOtp = session.user.id;
-        }
-      } else {
-        userIdForOtp = userId;
-      }
-
       const { data, error } = await supabase
         .from("otp_codes")
         .insert({
-          user_id: userIdForOtp,
+          user_id: session.user.id,
           phone_number: phoneNumber,
           code: otpCode,
           expires_at: expiresAt.toISOString(),
