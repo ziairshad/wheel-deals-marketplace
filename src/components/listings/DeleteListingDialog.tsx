@@ -15,7 +15,6 @@ import { Loader2, Trash2 } from "lucide-react";
 interface DeleteListingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onClose: () => void;
   onConfirm: () => void;
   isDeleting: boolean;
 }
@@ -23,22 +22,9 @@ interface DeleteListingDialogProps {
 const DeleteListingDialog = ({
   open,
   onOpenChange,
-  onClose,
   onConfirm,
   isDeleting,
 }: DeleteListingDialogProps) => {
-  // Handle confirmation button click
-  const handleConfirm = () => {
-    onConfirm();
-  };
-
-  // Handle cancel button click - explicitly call onClose
-  const handleCancel = () => {
-    if (!isDeleting) {
-      onClose();
-    }
-  };
-
   return (
     <AlertDialog 
       open={open} 
@@ -53,13 +39,12 @@ const DeleteListingDialog = ({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel 
-            onClick={handleCancel} 
             disabled={isDeleting}
           >
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
-            onClick={handleConfirm}
+            onClick={onConfirm}
             className="bg-red-600 hover:bg-red-700"
             disabled={isDeleting}
           >

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -74,29 +75,18 @@ export const useListings = () => {
     }
   };
 
-  // Improved dialog management
+  // Simplified dialog management
   const openDeleteDialog = (id: string) => {
-    if (!isDeleting) {
-      setListingToDelete(id);
-      setShowDeleteDialog(true);
-    }
+    setListingToDelete(id);
+    setShowDeleteDialog(true);
   };
 
-  const closeDeleteDialog = () => {
-    if (!isDeleting) {
-      setShowDeleteDialog(false);
-      // We need to clear the listingToDelete state to avoid stale references
-      setListingToDelete(null);
-    }
-  };
-
-  // Reset function with all dialog-related state
+  // Reset function for all dialog state
   const resetDeleteState = useCallback(() => {
-    if (!isDeleting) {
-      setShowDeleteDialog(false);
-      setListingToDelete(null);
-    }
-  }, [isDeleting]);
+    setShowDeleteDialog(false);
+    setListingToDelete(null);
+    setIsDeleting(false);
+  }, []);
 
   const handleDeleteListing = async () => {
     if (!listingToDelete) return;
@@ -126,10 +116,8 @@ export const useListings = () => {
         variant: "destructive"
       });
     } finally {
-      // Reset all states in correct order
-      setIsDeleting(false);
-      setShowDeleteDialog(false);
-      setListingToDelete(null);
+      // Reset all states
+      resetDeleteState();
     }
   };
 
@@ -141,7 +129,6 @@ export const useListings = () => {
     isDeleting,
     handleStatusChange,
     openDeleteDialog,
-    closeDeleteDialog,
     handleDeleteListing,
     setShowDeleteDialog,
     resetDeleteState
