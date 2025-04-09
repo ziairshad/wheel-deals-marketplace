@@ -86,6 +86,15 @@ const Header = () => {
     }
   };
   
+  // Handle sell button click
+  const handleSellClick = () => {
+    if (!user) {
+      navigate("/auth", { state: { from: "/sell", action: "sell" } });
+    } else {
+      navigate("/sell");
+    }
+  };
+  
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background backdrop-blur-sm">
       <div className="container flex h-16 items-center justify-between">
@@ -115,46 +124,36 @@ const Header = () => {
             </Link>
           )}
           
+          <Button onClick={handleSellClick}>
+            {isMobile ? "Sell" : "Sell Your Car"}
+          </Button>
+          
           {user ? (
-            <>
-              <Link to="/sell">
-                <Button>
-                  {isMobile ? "Sell" : "Sell Your Car"}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full p-0">
+                  <Avatar className="h-8 w-8">
+                    {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt={getUserDisplayName()} />}
+                    <AvatarFallback className="bg-gray-200 text-gray-700">{getUserInitials()}</AvatarFallback>
+                  </Avatar>
                 </Button>
-              </Link>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full p-0">
-                    <Avatar className="h-8 w-8">
-                      {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt={getUserDisplayName()} />}
-                      <AvatarFallback className="bg-gray-200 text-gray-700">{getUserInitials()}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem className="text-muted-foreground">
-                    {getUserDisplayName()}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/my-listings")}>
-                    <ClipboardList className="mr-2 h-4 w-4" />
-                    <span>My Listings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={signOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sign Out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          ) : (
-            <Link to="/auth">
-              <Button>
-                Sign In
-              </Button>
-            </Link>
-          )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem className="text-muted-foreground">
+                  {getUserDisplayName()}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate("/my-listings")}>
+                  <ClipboardList className="mr-2 h-4 w-4" />
+                  <span>My Listings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={signOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sign Out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
         </nav>
       </div>
     </header>
