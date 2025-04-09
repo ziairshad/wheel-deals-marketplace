@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Car, formatPrice, formatMileage } from "@/data/cars";
 import { Badge } from "@/components/ui/badge";
@@ -66,7 +67,7 @@ const CarCard = ({ car }: CarCardProps) => {
           <h3 className="font-medium text-lg truncate">
             {year} {make} {model}
           </h3>
-          <Badge variant="outline" className="car-badge bg-blue-50 text-car-blue border-car-blue">
+          <Badge variant="outline" className="car-badge bg-blue-50 text-primary border-primary">
             {formatPrice(price)}
           </Badge>
         </div>

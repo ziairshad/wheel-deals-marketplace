@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Car, SortDesc } from "lucide-react";
@@ -142,7 +141,7 @@ const HomePage = () => {
         {isMobile && (
           <Button 
             onClick={toggleFilters}
-            className="lg:hidden bg-car-blue hover:bg-blue-700 mb-4"
+            className="lg:hidden mb-4"
           >
             {isFilterOpen ? "Close Filters" : "Open Filters"}
           </Button>

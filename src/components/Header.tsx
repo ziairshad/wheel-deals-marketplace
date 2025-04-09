@@ -90,8 +90,8 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-background backdrop-blur-sm">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <Car className="h-6 w-6 text-car-blue" />
-          <span className="text-xl font-bold text-car-blue">Wheel Deals</span>
+          <Car className="h-6 w-6 text-primary" />
+          <span className="text-xl font-bold text-primary">Wheel Deals</span>
         </Link>
         
         <div className="flex-1 mx-8 max-w-xl">
@@ -118,7 +118,7 @@ const Header = () => {
           {user ? (
             <>
               <Link to="/sell">
-                <Button className="bg-car-blue hover:bg-blue-700">
+                <Button>
                   {isMobile ? "Sell" : "Sell Your Car"}
                 </Button>
               </Link>
@@ -150,7 +150,7 @@ const Header = () => {
             </>
           ) : (
             <Link to="/auth">
-              <Button className="bg-car-blue hover:bg-blue-700">
+              <Button>
                 Sign In
               </Button>
             </Link>

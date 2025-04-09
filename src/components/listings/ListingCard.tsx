@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, Pencil, Trash2 } from "lucide-react";
@@ -94,7 +95,7 @@ const ListingCard = ({ listing, onStatusChange, onDeleteClick }: ListingCardProp
           <h3 className="font-medium text-base truncate">
             {listing.year} {listing.make} {listing.model}
           </h3>
-          <span className="font-bold text-car-blue text-sm">
+          <span className="font-bold text-primary text-sm">
             {formatPrice(listing.price)}
           </span>
         </div>

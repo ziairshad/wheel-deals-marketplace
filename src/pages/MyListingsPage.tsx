@@ -49,14 +49,13 @@ const MyListingsPage = () => {
         
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div className="flex items-center">
-            <Car className="h-8 w-8 text-car-blue mr-3" />
+            <Car className="h-8 w-8 text-primary mr-3" />
             <h1 className="text-3xl font-bold">My Listings</h1>
           </div>
           
           <div className="flex flex-wrap gap-2">
             <Button 
               onClick={() => navigate("/sell")}
-              className="bg-car-blue hover:bg-blue-700"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add New Listing
