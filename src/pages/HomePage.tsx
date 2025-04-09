@@ -63,25 +63,19 @@ const HomePage = () => {
           throw new Error('Failed to fetch car listings');
         }
         
-        // Use placeholder cars if no data from Supabase or in development mode
-        let allCars: UnifiedCar[];
+        // Use real data from Supabase
+        let allCars: UnifiedCar[] = [];
         if (!carListings || carListings.length === 0) {
-          // Use placeholder cars since there's no data from Supabase
-          console.log("Using placeholder cars data");
-          allCars = [...placeholderCars];
+          // No cars available
+          console.log("No car listings found");
           toast({
-            title: "Using placeholder data",
-            description: "Showing sample car listings for demonstration",
+            title: "No listings found",
+            description: "There are currently no car listings available",
             duration: 3000,
           });
         } else {
           // Use TypeScript casting to ensure type safety
           allCars = carListings as CarListingRow[];
-          
-          // In development, add placeholder cars to ensure a good variety
-          if (import.meta.env.DEV) {
-            allCars = [...allCars, ...placeholderCars];
-          }
         }
         
         // Apply filtering
@@ -96,15 +90,11 @@ const HomePage = () => {
         console.error("Error in fetchData:", error);
         setError("Failed to load cars. Please try again later.");
         setLoading(false);
-        
-        // Fallback to placeholder cars if there's an error
-        const filtered = filterCars(placeholderCars, filters);
-        const sorted = [...filtered].sort(selectedSort.sortFn);
-        setFilteredCars(sorted);
+        setFilteredCars([]);
         
         toast({
           title: "Error loading data",
-          description: "Showing placeholder cars instead",
+          description: "Could not retrieve car listings",
           variant: "destructive",
         });
       }
