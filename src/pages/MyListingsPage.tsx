@@ -26,7 +26,7 @@ const MyListingsPage = () => {
     resetDeleteState
   } = useListings();
 
-  // Ensure dialog state is reset when component unmounts
+  // Reset dialog state when component unmounts to prevent stale state
   useEffect(() => {
     return () => {
       resetDeleteState();
@@ -78,7 +78,7 @@ const MyListingsPage = () => {
       
       <Footer />
 
-      {/* Always render the dialog but control visibility with 'open' prop */}
+      {/* Dialog component with improved event handling */}
       <DeleteListingDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -75,26 +74,29 @@ export const useListings = () => {
     }
   };
 
-  // Clean implementation of opening delete dialog
+  // Completely revised dialog management
   const openDeleteDialog = (id: string) => {
-    if (isDeleting) return; // Prevent multiple dialogs
-    setListingToDelete(id);
-    setShowDeleteDialog(true);
-  };
-
-  // Safe implementation of closing dialog
-  const closeDeleteDialog = () => {
-    if (isDeleting) return;
-    setShowDeleteDialog(false);
-  };
-
-  // This function runs when the dialog is fully closed (animation complete)
-  const resetDeleteState = () => {
-    // Only reset the ID if we're not in the process of deleting
-    if (!isDeleting) {
-      setListingToDelete(null);
+    // Only allow opening if not already open or deleting
+    if (!showDeleteDialog && !isDeleting) {
+      setListingToDelete(id);
+      setShowDeleteDialog(true);
     }
   };
+
+  const closeDeleteDialog = () => {
+    // Only allow closing if not currently deleting
+    if (!isDeleting) {
+      setShowDeleteDialog(false);
+    }
+  };
+
+  // Clean reset function that can be called when needed
+  const resetDeleteState = useCallback(() => {
+    if (!isDeleting) {
+      setListingToDelete(null);
+      setShowDeleteDialog(false);
+    }
+  }, [isDeleting]);
 
   const handleDeleteListing = async () => {
     if (!listingToDelete) return;
@@ -102,15 +104,12 @@ export const useListings = () => {
     try {
       setIsDeleting(true);
       
-      // Store the ID before any other operations
-      const deletedId = listingToDelete;
-      
       // Perform the deletion
-      await deleteCarListing(deletedId);
+      await deleteCarListing(listingToDelete);
       
       // Update local state to remove the deleted listing
       setListings(prevListings => 
-        prevListings.filter(listing => listing.id !== deletedId)
+        prevListings.filter(listing => listing.id !== listingToDelete)
       );
       
       toast({
@@ -127,16 +126,10 @@ export const useListings = () => {
         variant: "destructive"
       });
     } finally {
-      // First close the dialog
-      setShowDeleteDialog(false);
-      
-      // Then reset deleting state
+      // Reset all states in one batch to avoid UI glitches
       setIsDeleting(false);
-      
-      // Finally clear the ID after a short delay
-      setTimeout(() => {
-        setListingToDelete(null);
-      }, 150);
+      setShowDeleteDialog(false);
+      setListingToDelete(null);
     }
   };
 
