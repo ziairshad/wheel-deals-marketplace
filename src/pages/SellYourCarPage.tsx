@@ -6,7 +6,6 @@ import * as z from "zod";
 import { Car, FileUp, Info } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ProtectedRoute from "@/components/ProtectedRoute";
 import { 
   Form, 
   FormControl, 
@@ -29,6 +28,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { emirates } from "@/data/cars";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 // Define the form schema
 const formSchema = z.object({
@@ -46,6 +49,7 @@ const formSchema = z.object({
   contactName: z.string().min(1, "Contact name is required"),
   contactPhone: z.string().min(7, "Valid phone number required"),
   contactEmail: z.string().email("Invalid email address"),
+  vin: z.string().min(17, "VIN must be at least 17 characters").max(17, "VIN must be exactly 17 characters"),
 });
 
 const bodyTypes = [
@@ -58,6 +62,10 @@ const fuelTypes = ["Petrol", "Diesel", "Hybrid", "Electric"];
 
 const SellYourCarPageContent = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [images, setImages] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,19 +84,126 @@ const SellYourCarPageContent = () => {
       contactName: "",
       contactPhone: "",
       contactEmail: "",
+      vin: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-    // Here you would normally send this data to your backend
-    
-    toast({
-      title: "Listing submitted!",
-      description: "Your car listing has been submitted for review.",
-    });
-    
-    form.reset();
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (fileList) {
+      const newFiles = Array.from(fileList);
+      // Limit to 10 images
+      const totalImages = [...images, ...newFiles].slice(0, 10);
+      setImages(totalImages);
+    }
+  };
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to submit a listing",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (images.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please upload at least one image",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setUploading(true);
+
+      // Insert car listing into database
+      const { data: carData, error: carError } = await supabase
+        .from('car_listings')
+        .insert([
+          {
+            user_id: user.id,
+            make: values.make,
+            model: values.model,
+            year: parseInt(values.year),
+            price: parseInt(values.price),
+            mileage: parseInt(values.mileage),
+            body_type: values.bodyType,
+            transmission: values.transmission,
+            fuel_type: values.fuelType,
+            exterior_color: values.color,
+            location: values.location,
+            description: values.description,
+            contact_name: values.contactName,
+            contact_phone: values.contactPhone,
+            contact_email: values.contactEmail,
+            status: 'pending',
+            vin: values.vin,
+          }
+        ])
+        .select()
+        .single();
+
+      if (carError) {
+        throw carError;
+      }
+
+      // Upload images
+      const carId = carData.id;
+      const imageUrls = [];
+
+      for (let i = 0; i < images.length; i++) {
+        const file = images[i];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${carId}/${i}-${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError, data } = await supabase.storage
+          .from('car_images')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('car_images')
+          .getPublicUrl(filePath);
+
+        imageUrls.push(publicUrl);
+      }
+
+      // Update car listing with image URLs
+      const { error: updateError } = await supabase
+        .from('car_listings')
+        .update({ images: imageUrls })
+        .eq('id', carId);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      toast({
+        title: "Listing submitted!",
+        description: "Your car listing has been submitted for review.",
+      });
+      
+      form.reset();
+      setImages([]);
+      navigate('/my-listings');
+    } catch (error) {
+      console.error("Error submitting listing:", error);
+      toast({
+        title: "Error",
+        description: "There was an error submitting your listing. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -180,6 +295,20 @@ const SellYourCarPageContent = () => {
                       <FormLabel>Mileage (KM) *</FormLabel>
                       <FormControl>
                         <Input type="number" placeholder="e.g. 50000" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="vin"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>VIN (Vehicle Identification Number) *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. 1HGCM82633A123456" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -314,18 +443,55 @@ const SellYourCarPageContent = () => {
               </div>
               
               <div className="mt-6">
-                <FormLabel className="block mb-2">Photos</FormLabel>
+                <FormLabel className="block mb-2">Photos *</FormLabel>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                   <FileUp className="h-10 w-10 mx-auto text-gray-400 mb-2" />
                   <p className="text-sm text-muted-foreground mb-2">
                     Drag and drop images here, or click to browse
                   </p>
-                  <Button type="button" variant="outline" size="sm">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                  >
                     Upload Photos
                   </Button>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
                   <FormDescription className="mt-2">
                     Upload up to 10 photos. First photo will be the main listing image.
                   </FormDescription>
+                  
+                  {images.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium mb-2">{images.length} photo{images.length > 1 ? 's' : ''} selected</p>
+                      <div className="flex flex-wrap gap-2">
+                        {images.map((image, index) => (
+                          <div key={index} className="relative w-16 h-16 rounded-md overflow-hidden border">
+                            <img
+                              src={URL.createObjectURL(image)}
+                              alt={`Preview ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                              onClick={() => setImages(images.filter((_, i) => i !== index))}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -384,8 +550,13 @@ const SellYourCarPageContent = () => {
             </div>
             
             <div className="flex justify-center mt-8">
-              <Button type="submit" size="lg" className="px-8 bg-car-blue hover:bg-blue-700">
-                Submit Listing
+              <Button 
+                type="submit" 
+                size="lg" 
+                className="px-8 bg-car-blue hover:bg-blue-700"
+                disabled={uploading}
+              >
+                {uploading ? "Submitting..." : "Submit Listing"}
               </Button>
             </div>
           </form>
@@ -399,11 +570,7 @@ const SellYourCarPageContent = () => {
 
 // Wrap the component with ProtectedRoute
 const SellYourCarPage = () => {
-  return (
-    <ProtectedRoute>
-      <SellYourCarPageContent />
-    </ProtectedRoute>
-  );
+  return <SellYourCarPageContent />;
 };
 
 export default SellYourCarPage;

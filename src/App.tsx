@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import HomePage from "./pages/HomePage";
 import CarDetailsPage from "./pages/CarDetailsPage";
 import SellYourCarPage from "./pages/SellYourCarPage";
+import MyListingsPage from "./pages/MyListingsPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -31,6 +32,14 @@ const App = () => (
                 element={
                   <ProtectedRoute requirePhoneVerification={true}>
                     <SellYourCarPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/my-listings" 
+                element={
+                  <ProtectedRoute>
+                    <MyListingsPage />
                   </ProtectedRoute>
                 } 
               />

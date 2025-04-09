@@ -1,7 +1,7 @@
 
 import { useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -43,6 +43,11 @@ const CarDetailsPage = () => {
     
     // Here would be the actual contact seller functionality
     toast.success("Contact request sent to seller!");
+  };
+  
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("VIN copied to clipboard");
   };
   
   return (
@@ -129,9 +134,18 @@ const CarDetailsPage = () => {
                 <Separator />
                 
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">VIN</span>
-                    <span className="font-medium">{car.vin}</span>
+                    <span className="font-medium flex items-center">
+                      {car.vin}
+                      <button 
+                        onClick={() => copyToClipboard(car.vin)}
+                        className="ml-2 p-1 rounded-full hover:bg-gray-100"
+                        aria-label="Copy VIN to clipboard"
+                      >
+                        <Copy className="h-4 w-4 text-gray-500" />
+                      </button>
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Exterior Color</span>
