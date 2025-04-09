@@ -107,7 +107,7 @@ const HomePage = () => {
       
       <main className="flex-1 container grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 py-8">
         {/* Filter Sidebar (visible on larger screens) */}
-        <aside className="hidden lg:block">
+        <aside className="hidden lg:block h-[calc(100vh-160px)] sticky top-24">
           <FilterSidebar 
             filters={filters}
             onFilterChange={handleFilterChange}
@@ -127,7 +127,7 @@ const HomePage = () => {
         {/* Mobile Filter Overlay */}
         {isMobile && isFilterOpen && (
           <div className="fixed inset-0 bg-black/50 z-50">
-            <aside className="absolute top-0 left-0 w-80 h-full bg-white shadow-lg p-4">
+            <aside className="absolute top-0 right-0 w-80 h-full bg-white shadow-lg p-4 overflow-auto">
               <FilterSidebar 
                 filters={filters}
                 onFilterChange={handleFilterChange}

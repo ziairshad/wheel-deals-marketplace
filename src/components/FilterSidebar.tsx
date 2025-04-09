@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Accordion,
   AccordionContent,
@@ -195,16 +196,16 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="h-full overflow-auto space-y-4 pr-2">
       <Accordion type="multiple" defaultValue={["make", "model", "price", "year"]}>
         <AccordionItem value="make">
-          <AccordionTrigger>Make</AccordionTrigger>
+          <AccordionTrigger className="py-3">Make</AccordionTrigger>
           <AccordionContent>
-            <Select onValueChange={handleMakeChange} defaultValue={filters.make || ""}>
+            <Select onValueChange={handleMakeChange} value={filters.make || ""}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select make" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[200px]">
                 {makes.map((make) => (
                   <SelectItem key={make} value={make}>
                     {make}
@@ -216,17 +217,17 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </AccordionItem>
 
         <AccordionItem value="model">
-          <AccordionTrigger>Model</AccordionTrigger>
+          <AccordionTrigger className="py-3">Model</AccordionTrigger>
           <AccordionContent>
             <Select
               onValueChange={handleModelChange}
-              defaultValue={filters.model || ""}
+              value={filters.model || ""}
               disabled={!filters.make}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select model" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[200px]">
                 {models.map((model) => (
                   <SelectItem key={model} value={model}>
                     {model}
@@ -238,7 +239,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </AccordionItem>
 
         <AccordionItem value="price">
-          <AccordionTrigger>Price Range</AccordionTrigger>
+          <AccordionTrigger className="py-3">Price Range</AccordionTrigger>
           <AccordionContent>
             <DualRangeSlider
               min={0}
@@ -254,7 +255,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </AccordionItem>
 
         <AccordionItem value="year">
-          <AccordionTrigger>Year Range</AccordionTrigger>
+          <AccordionTrigger className="py-3">Year Range</AccordionTrigger>
           <AccordionContent>
             <DualRangeSlider
               min={1990}
@@ -269,18 +270,19 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </AccordionItem>
 
         <AccordionItem value="bodyType">
-          <AccordionTrigger>Body Type</AccordionTrigger>
+          <AccordionTrigger className="py-3">Body Type</AccordionTrigger>
           <AccordionContent>
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-2">
               {bodyTypes.map((bodyType) => (
                 <div key={bodyType} className="flex items-center space-x-2">
-                  <Input
-                    type="checkbox"
+                  <Checkbox
                     id={`bodyType-${bodyType}`}
                     checked={filters.bodyTypes.includes(bodyType)}
-                    onChange={() => handleBodyTypeChange(bodyType)}
+                    onCheckedChange={() => handleBodyTypeChange(bodyType)}
                   />
-                  <Label htmlFor={`bodyType-${bodyType}`}>{bodyType}</Label>
+                  <Label htmlFor={`bodyType-${bodyType}`} className="text-sm cursor-pointer">
+                    {bodyType}
+                  </Label>
                 </div>
               ))}
             </div>
@@ -288,11 +290,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </AccordionItem>
 
         <AccordionItem value="transmission">
-          <AccordionTrigger>Transmission</AccordionTrigger>
+          <AccordionTrigger className="py-3">Transmission</AccordionTrigger>
           <AccordionContent>
             <Select
               onValueChange={handleTransmissionChange}
-              defaultValue={filters.transmission || ""}
+              value={filters.transmission || ""}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select transmission" />
@@ -306,11 +308,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </AccordionItem>
 
         <AccordionItem value="fuelType">
-          <AccordionTrigger>Fuel Type</AccordionTrigger>
+          <AccordionTrigger className="py-3">Fuel Type</AccordionTrigger>
           <AccordionContent>
             <Select
               onValueChange={handleFuelTypeChange}
-              defaultValue={filters.fuelType || ""}
+              value={filters.fuelType || ""}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select fuel type" />
@@ -326,16 +328,16 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </AccordionItem>
 
         <AccordionItem value="location">
-          <AccordionTrigger>Location</AccordionTrigger>
+          <AccordionTrigger className="py-3">Location</AccordionTrigger>
           <AccordionContent>
             <Select
               onValueChange={handleLocationChange}
-              defaultValue={filters.location || ""}
+              value={filters.location || ""}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select location" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[200px]">
                 {locations.map((location) => (
                   <SelectItem key={location} value={location}>
                     {location}
@@ -347,16 +349,16 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </AccordionItem>
 
         <AccordionItem value="regionalSpecs">
-          <AccordionTrigger>Regional Specs</AccordionTrigger>
+          <AccordionTrigger className="py-3">Regional Specs</AccordionTrigger>
           <AccordionContent>
             <Select
               onValueChange={handleRegionalSpecsChange}
-              defaultValue={filters.regionalSpecs || ""}
+              value={filters.regionalSpecs || ""}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select regional specs" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[200px]">
                 {regionalSpecs.map((regionalSpec) => (
                   <SelectItem key={regionalSpec} value={regionalSpec}>
                     {regionalSpec}
@@ -368,7 +370,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </AccordionItem>
 
         <AccordionItem value="mileage">
-          <AccordionTrigger>Mileage Range</AccordionTrigger>
+          <AccordionTrigger className="py-3">Mileage Range</AccordionTrigger>
           <AccordionContent>
             <DualRangeSlider
               min={0}
