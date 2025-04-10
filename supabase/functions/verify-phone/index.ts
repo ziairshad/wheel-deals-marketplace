@@ -6,6 +6,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
+// Twilio credentials
+const twilioAccountSid = Deno.env.get("TWILIO_ACCOUNT_SID") ?? "";
+const twilioAuthToken = Deno.env.get("TWILIO_AUTH_TOKEN") ?? "";
+const twilioPhoneNumber = Deno.env.get("TWILIO_PHONE_NUMBER") ?? "";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -19,6 +24,40 @@ interface RequestBody {
   userId?: string;
 }
 
+async function sendTwilioSMS(to: string, body: string) {
+  const twilioEndpoint = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`;
+  
+  const formData = new URLSearchParams();
+  formData.append('To', to);
+  formData.append('From', twilioPhoneNumber);
+  formData.append('Body', body);
+  
+  const auth = btoa(`${twilioAccountSid}:${twilioAuthToken}`);
+  
+  try {
+    const response = await fetch(twilioEndpoint, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData,
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      console.error("Twilio API error:", data);
+      throw new Error(data.message || "Failed to send SMS");
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Error sending SMS:", error);
+    throw error;
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -26,6 +65,19 @@ serve(async (req) => {
   }
 
   try {
+    // Check if Twilio credentials are configured
+    if (!twilioAccountSid || !twilioAuthToken || !twilioPhoneNumber) {
+      return new Response(
+        JSON.stringify({ 
+          error: "Twilio credentials are not configured." 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
+    }
+
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: {
         headers: { Authorization: req.headers.get("Authorization") ?? "" },
@@ -36,9 +88,6 @@ serve(async (req) => {
     const {
       data: { session },
     } = await supabase.auth.getSession();
-
-    // For this demo, we'll just simulate sending and verifying OTPs
-    // In a production app, you would integrate with an SMS provider like Twilio
 
     const { phoneNumber, action, code, userId } = await req.json() as RequestBody;
 
@@ -95,20 +144,34 @@ serve(async (req) => {
         );
       }
 
-      // In a real implementation, send SMS here
-      console.log(`Simulating sending OTP ${otpCode} to ${phoneNumber}`);
-
-      return new Response(
-        JSON.stringify({ 
-          message: "OTP sent successfully",
-          // In development, return the code for testing
-          code: otpCode
-        }),
-        { 
-          status: 200, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
-      );
+      // Send OTP via Twilio SMS
+      try {
+        const message = `Your Wheel Deals verification code is: ${otpCode}`;
+        await sendTwilioSMS(phoneNumber, message);
+        
+        console.log(`SMS sent to ${phoneNumber} with code ${otpCode}`);
+        
+        return new Response(
+          JSON.stringify({ 
+            message: "OTP sent successfully",
+            // In development, return the code for testing
+            code: process.env.NODE_ENV === "development" ? otpCode : undefined
+          }),
+          { 
+            status: 200, 
+            headers: { ...corsHeaders, "Content-Type": "application/json" } 
+          }
+        );
+      } catch (error) {
+        console.error("Failed to send SMS:", error);
+        return new Response(
+          JSON.stringify({ error: "Failed to send SMS. Please try again later." }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, "Content-Type": "application/json" } 
+          }
+        );
+      }
     } 
     else if (action === "verify") {
       if (!code || !userId) {
