@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { Car } from "lucide-react";
@@ -86,39 +87,29 @@ const AuthPage = () => {
     try {
       setIsLoading(true);
       
-      // Check for duplicate email - using a simple approach without count parameter
-      const { data: emailData, error: emailError } = await supabase
+      // Check for duplicate email - simplified approach
+      let { data: emailExists } = await supabase
         .from('profiles')
         .select('id')
-        .eq('email', values.email);
+        .eq('email', values.email)
+        .limit(1)
+        .single();
       
-      if (emailError) {
-        console.error("Email check error:", emailError);
-        toast.error("Error checking email availability");
-        setIsLoading(false);
-        return;
-      }
-      
-      if (emailData && emailData.length > 0) {
+      if (emailExists) {
         toast.error("Email already in use. Please use a different email address.");
         setIsLoading(false);
         return;
       }
       
-      // Check for duplicate phone number - using a simple approach without count parameter
-      const { data: phoneData, error: phoneError } = await supabase
+      // Check for duplicate phone number - simplified approach
+      let { data: phoneExists } = await supabase
         .from('profiles')
         .select('id')
-        .eq('phone_number', values.phoneNumber);
+        .eq('phone_number', values.phoneNumber)
+        .limit(1)
+        .single();
       
-      if (phoneError) {
-        console.error("Phone check error:", phoneError);
-        toast.error("Error checking phone availability");
-        setIsLoading(false);
-        return;
-      }
-      
-      if (phoneData && phoneData.length > 0) {
+      if (phoneExists) {
         toast.error("Phone number already in use. Please use a different phone number.");
         setIsLoading(false);
         return;
@@ -128,8 +119,20 @@ const AuthPage = () => {
       await signUp(values.email, values.password, values.fullName, values.phoneNumber);
       setEmailSent(true);
     } catch (error: any) {
-      console.error("Signup error:", error);
-      // Error is already shown in toast by the signUp function
+      // Check if error is a "not found" error from single() - that's actually good in our case
+      if (error.code === 'PGRST116') {
+        // This means the email/phone doesn't exist - continue with signup
+        try {
+          await signUp(values.email, values.password, values.fullName, values.phoneNumber);
+          setEmailSent(true);
+        } catch (signupError: any) {
+          console.error("Signup error:", signupError);
+          toast.error(signupError.message || "Failed to sign up.");
+        }
+      } else {
+        console.error("Error checking existing user:", error);
+        toast.error(error.message || "Failed to sign up.");
+      }
     } finally {
       setIsLoading(false);
     }
