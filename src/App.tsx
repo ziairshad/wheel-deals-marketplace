@@ -31,7 +31,7 @@ const App = () => (
               <Route 
                 path="/sell" 
                 element={
-                  <ProtectedRoute requirePhoneVerification={true}>
+                  <ProtectedRoute>
                     <SellYourCarPage />
                   </ProtectedRoute>
                 } 
@@ -39,7 +39,7 @@ const App = () => (
               <Route 
                 path="/edit/:id" 
                 element={
-                  <ProtectedRoute requirePhoneVerification={true}>
+                  <ProtectedRoute>
                     <EditCarPage />
                   </ProtectedRoute>
                 } 

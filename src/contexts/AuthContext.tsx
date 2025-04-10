@@ -20,11 +20,9 @@ type AuthContextType = {
   user: User | null;
   profile: Profile | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string, phoneNumber: string) => Promise<string | undefined>;
+  signUp: (email: string, password: string, fullName: string, phoneNumber: string) => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
-  sendPhoneVerification: (phoneNumber: string, userId?: string) => Promise<string | undefined>;
-  verifyPhoneNumber: (phoneNumber: string, code: string, userId: string) => Promise<boolean>;
   loadingProfile: boolean;
 };
 
@@ -112,81 +110,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName: string, phoneNumber: string) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: { 
             full_name: fullName,
             phone_number: phoneNumber
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/auth?redirect=verified`
         }
       });
 
       if (error) throw error;
       
       toast.success("Account created! Please check your email to verify your account.");
-      
-      // Return user ID for phone verification
-      return data?.user?.id;
     } catch (error: any) {
       toast.error(error.message || "Failed to sign up.");
       throw error;
-    }
-  };
-
-  const sendPhoneVerification = async (phoneNumber: string, userId?: string) => {
-    try {
-      // If userId is not provided but user is logged in, use the logged-in user's ID
-      const effectiveUserId = userId || user?.id;
-      
-      if (!effectiveUserId) {
-        throw new Error("User ID is required to verify phone number");
-      }
-
-      const response = await supabase.functions.invoke("verify-phone", {
-        body: { 
-          phoneNumber, 
-          userId: effectiveUserId,
-          action: "send" 
-        },
-      });
-
-      if (response.error) {
-        throw new Error(response.error.message || "Failed to send verification code");
-      }
-
-      toast.success("Verification code sent to your phone");
-      return response.data.code; // In dev mode, we return the code for easier testing
-    } catch (error: any) {
-      toast.error(error.message || "Failed to send verification code");
-      throw error;
-    }
-  };
-
-  const verifyPhoneNumber = async (phoneNumber: string, code: string, userId: string) => {
-    try {
-      const response = await supabase.functions.invoke("verify-phone", {
-        body: { 
-          phoneNumber, 
-          code,
-          userId,
-          action: "verify" 
-        },
-      });
-
-      if (response.error) {
-        throw new Error(response.error.message || "Failed to verify phone number");
-      }
-
-      // Refresh profile data
-      await fetchProfile(userId);
-      
-      toast.success("Phone number verified successfully");
-      return true;
-    } catch (error: any) {
-      toast.error(error.message || "Failed to verify phone number");
-      return false;
     }
   };
 
@@ -210,8 +151,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signUp, 
       signOut, 
       loading,
-      sendPhoneVerification,
-      verifyPhoneNumber,
       loadingProfile
     }}>
       {children}

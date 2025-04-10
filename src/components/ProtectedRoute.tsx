@@ -4,11 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
-  requirePhoneVerification?: boolean;
 };
 
-const ProtectedRoute = ({ children, requirePhoneVerification = false }: ProtectedRouteProps) => {
-  const { user, loading, profile } = useAuth();
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+  const { user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -18,15 +17,6 @@ const ProtectedRoute = ({ children, requirePhoneVerification = false }: Protecte
   if (!user) {
     // Redirect to auth page but save the current location they were trying to access
     return <Navigate to="/auth" state={{ from: location }} replace />;
-  }
-
-  // If phone verification is required but not verified
-  if (requirePhoneVerification && profile && !profile.phone_verified) {
-    // Redirect to auth page to complete verification
-    return <Navigate to="/auth" state={{ 
-      from: location, 
-      verifyPhone: true 
-    }} replace />;
   }
 
   return <>{children}</>;

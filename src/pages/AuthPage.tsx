@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
-import { Car, ArrowLeft } from "lucide-react";
+import { Car } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -16,8 +17,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 // Validate UAE phone number
 const uaePhoneRegex = /^\+971[0-9]{9}$/;
@@ -38,38 +37,20 @@ const signupSchema = z.object({
   path: ["confirmPassword"],
 });
 
-const verifyPhoneSchema = z.object({
-  otp: z.string().length(6, "OTP must be 6 digits"),
-});
-
 type LocationState = {
   from?: { pathname: string };
-  verifyPhone?: boolean;
 };
 
 const AuthPage = () => {
-  const { user, signIn, signUp, loading, sendPhoneVerification, verifyPhoneNumber, profile } = useAuth();
+  const { user, signIn, signUp, loading, profile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("login");
-  const [showPhoneVerification, setShowPhoneVerification] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [userId, setUserId] = useState<string | undefined>();
+  const [emailSent, setEmailSent] = useState(false);
   
   const location = useLocation();
   const locationState = location.state as LocationState;
   const redirectPath = locationState?.from?.pathname || "/";
   
-  // Check if user needs to verify phone
-  useEffect(() => {
-    if (locationState?.verifyPhone && user) {
-      setShowPhoneVerification(true);
-      if (profile?.phone_number) {
-        setPhoneNumber(profile.phone_number);
-      }
-      setUserId(user.id);
-    }
-  }, [locationState, user, profile]);
-
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -88,13 +69,6 @@ const AuthPage = () => {
       confirmPassword: "",
     },
   });
-  
-  const verifyPhoneForm = useForm<z.infer<typeof verifyPhoneSchema>>({
-    resolver: zodResolver(verifyPhoneSchema),
-    defaultValues: {
-      otp: "",
-    },
-  });
 
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
@@ -110,75 +84,17 @@ const AuthPage = () => {
   const onSignupSubmit = async (values: z.infer<typeof signupSchema>) => {
     try {
       setIsLoading(true);
-      const newUserId = await signUp(values.email, values.password, values.fullName, values.phoneNumber);
-      
-      if (newUserId) {
-        setUserId(newUserId);
-        setPhoneNumber(values.phoneNumber);
-        setShowPhoneVerification(true);
-        
-        // Send verification code with the new user ID
-        try {
-          await sendPhoneVerification(values.phoneNumber, newUserId);
-          toast.success("Verification code sent to your phone");
-        } catch (error) {
-          console.error("Failed to send verification code:", error);
-          toast.error("Failed to send verification code. Please try again.");
-        }
-      }
+      await signUp(values.email, values.password, values.fullName, values.phoneNumber);
+      setEmailSent(true);
     } catch (error) {
       console.error("Signup error:", error);
     } finally {
       setIsLoading(false);
     }
   };
-  
-  const handleSendVerificationCode = async () => {
-    if (!phoneNumber || !userId) {
-      toast.error("Missing user information. Please try again.");
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      await sendPhoneVerification(phoneNumber, userId);
-      toast.success("Verification code sent to your phone");
-    } catch (error) {
-      console.error("Failed to send verification code:", error);
-      toast.error("Failed to send verification code. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const onVerifyPhoneSubmit = async (values: z.infer<typeof verifyPhoneSchema>) => {
-    if (!userId || !phoneNumber) {
-      toast.error("Missing user information. Please try again.");
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      const success = await verifyPhoneNumber(phoneNumber, values.otp, userId);
-      
-      if (success) {
-        // Redirect back to the original page
-        window.location.href = redirectPath;
-      }
-    } catch (error) {
-      console.error("Failed to verify phone:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  // Return to signup form
-  const handleBackToSignup = () => {
-    setShowPhoneVerification(false);
-  };
-
-  // If user is already logged in and phone is verified, redirect to home page
-  if (user && !loading && profile?.phone_verified && !locationState?.verifyPhone) {
+  // If user is already logged in, redirect to home page
+  if (user && !loading) {
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -191,17 +107,17 @@ const AuthPage = () => {
             <span className="text-2xl font-bold text-car-blue">Wheel Deals</span>
           </Link>
           
-          {showPhoneVerification ? (
-            <h1 className="text-2xl font-semibold text-center">Verify Your Phone Number</h1>
+          {emailSent ? (
+            <h1 className="text-2xl font-semibold text-center">Check Your Email</h1>
           ) : (
             <h1 className="text-2xl font-semibold text-center">
               {activeTab === "login" ? "Welcome back" : "Create an account"}
             </h1>
           )}
           
-          {showPhoneVerification ? (
+          {emailSent ? (
             <p className="text-center text-muted-foreground mt-2">
-              Please enter the verification code sent to {phoneNumber}
+              We've sent you a verification email. Please check your inbox and click the link to verify your account.
             </p>
           ) : (
             <p className="text-center text-muted-foreground mt-2">
@@ -213,64 +129,21 @@ const AuthPage = () => {
         </div>
 
         <div className="bg-white p-8 rounded-lg shadow-sm border">
-          {showPhoneVerification ? (
-            <>
-              <Button 
-                variant="ghost" 
-                className="mb-4 px-0" 
-                onClick={handleBackToSignup}
-                disabled={isLoading}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
+          {emailSent ? (
+            <div className="text-center space-y-4">
+              <div className="bg-blue-50 text-blue-700 p-4 rounded-md">
+                <p>A verification link has been sent to your email address. Please click the link to complete your registration.</p>
+              </div>
               
-              <Form {...verifyPhoneForm}>
-                <form onSubmit={verifyPhoneForm.handleSubmit(onVerifyPhoneSubmit)} className="space-y-4">
-                  <FormField
-                    control={verifyPhoneForm.control}
-                    name="otp"
-                    render={({ field }) => (
-                      <FormItem className="space-y-4">
-                        <FormLabel>Verification Code</FormLabel>
-                        <FormControl>
-                          <InputOTP maxLength={6} {...field}>
-                            <InputOTPGroup>
-                              <InputOTPSlot index={0} />
-                              <InputOTPSlot index={1} />
-                              <InputOTPSlot index={2} />
-                              <InputOTPSlot index={3} />
-                              <InputOTPSlot index={4} />
-                              <InputOTPSlot index={5} />
-                            </InputOTPGroup>
-                          </InputOTP>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <div className="flex flex-col space-y-2">
-                    <Button 
-                      type="submit" 
-                      className="w-full mt-6 bg-car-blue hover:bg-blue-700" 
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Verifying..." : "Verify Phone Number"}
-                    </Button>
-                    
-                    <Button 
-                      type="button"
-                      variant="outline"
-                      onClick={handleSendVerificationCode}
-                      disabled={isLoading}
-                    >
-                      Resend Code
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4"
+                onClick={() => setActiveTab("login")}
+              >
+                Return to Login
+              </Button>
+            </div>
           ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid grid-cols-2 w-full mb-6">
