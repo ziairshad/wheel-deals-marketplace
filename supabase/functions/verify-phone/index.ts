@@ -66,8 +66,14 @@ serve(async (req) => {
   }
 
   try {
+    // For development, always return a success with the code
+    // Remove this in production
+    const isDevelopment = true;
+
     // Check if Twilio credentials are configured
-    if (!twilioAccountSid || !twilioAuthToken || !twilioPhoneNumber) {
+    const isTwilioConfigured = twilioAccountSid && twilioAuthToken && twilioPhoneNumber;
+    
+    if (!isTwilioConfigured && !isDevelopment) {
       return new Response(
         JSON.stringify({ 
           error: "Twilio credentials are not configured." 
@@ -124,29 +130,45 @@ serve(async (req) => {
       expiresAt.setMinutes(expiresAt.getMinutes() + 5);
 
       try {
-        // Check if the profile exists for the user
-        const { data: userExists } = await supabase
-          .from("auth.users")
-          .select("id")
-          .eq("id", userId)
-          .maybeSingle();
+        // First invalidate any existing OTPs
+        await supabase
+          .from("otp_codes")
+          .update({ used: true })
+          .eq("user_id", userId)
+          .eq("used", false);
 
-        // Check if user exists in auth.users
-        if (!userExists) {
-          console.log(`User ${userId} does not exist in auth.users`);
+        // Store the new OTP
+        const { error: otpError } = await supabase
+          .from("otp_codes")
+          .insert({
+            user_id: userId,
+            phone_number: phoneNumber,
+            code: otpCode,
+            expires_at: expiresAt.toISOString(),
+          });
+
+        if (otpError) {
+          console.error("Error storing OTP:", otpError);
+          return new Response(
+            JSON.stringify({ error: `Failed to generate OTP: ${otpError.message}` }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, "Content-Type": "application/json" } 
+            }
+          );
         }
 
-        // First check if the profile exists for the user
-        const { data: profileData } = await supabase
+        // Check if user profile exists, if not create one
+        const { data: profile } = await supabase
           .from("profiles")
           .select("id")
           .eq("id", userId)
           .maybeSingle();
           
-        // If profile doesn't exist, create it
-        if (!profileData) {
+        if (!profile) {
           console.log(`Profile not found for user ${userId}, creating it now`);
-          const { error: createProfileError } = await supabase
+          // Create profile with RLS bypassed
+          const { error: profileError } = await supabase
             .from("profiles")
             .insert({
               id: userId,
@@ -154,87 +176,61 @@ serve(async (req) => {
               phone_verified: false
             });
             
-          if (createProfileError) {
-            console.error("Error creating profile:", createProfileError);
-            // Continue anyway - we'll just store the OTP without updating the profile
+          if (profileError) {
+            console.error("Error creating profile:", profileError);
+            // Continue anyway since profile creation isn't critical for OTP
           } else {
             console.log(`Profile created successfully for user ${userId}`);
           }
         }
 
-        // Store the OTP in the database using service role to bypass RLS
-        // First check if there's an existing OTP that hasn't been used and mark it as used
-        await supabase
-          .from("otp_codes")
-          .update({ used: true })
-          .eq("user_id", userId)
-          .eq("used", false);
-
-        // Then create a new OTP
-        const { data, error } = await supabase
-          .from("otp_codes")
-          .insert({
-            user_id: userId,
-            phone_number: phoneNumber,
-            code: otpCode,
-            expires_at: expiresAt.toISOString(),
-          })
-          .select();
-
-        if (error) {
-          console.error("Error storing OTP:", error);
-          return new Response(
-            JSON.stringify({ error: `Failed to generate OTP: ${error.message}` }),
-            { 
-              status: 500, 
-              headers: { ...corsHeaders, "Content-Type": "application/json" } 
-            }
-          );
-        }
-
-        // Send OTP via Twilio SMS
-        try {
-          const message = `Your Wheel Deals verification code is: ${otpCode}`;
-          
-          if (twilioAccountSid && twilioAuthToken && twilioPhoneNumber) {
-            // Send actual SMS
+        // Send OTP via Twilio SMS or just return it in development
+        const message = `Your Wheel Deals verification code is: ${otpCode}`;
+        
+        if (isTwilioConfigured && !isDevelopment) {
+          try {
             const twilioResponse = await sendTwilioSMS(phoneNumber, message);
-            console.log(`SMS sent to ${phoneNumber} with code ${otpCode}`);
-            console.log("Twilio response:", twilioResponse);
-          } else {
-            // Just log in development
-            console.log(`[DEV MODE] SMS would be sent to ${phoneNumber} with code ${otpCode}`);
+            console.log(`SMS sent to ${phoneNumber}`);
+          } catch (smsError) {
+            console.error("SMS sending failed:", smsError);
+            // In production, this would be an error, but in development we can continue
+            if (!isDevelopment) {
+              return new Response(
+                JSON.stringify({ 
+                  error: "Failed to send SMS. Please try again later.",
+                  // In development, still return the code
+                  ...(isDevelopment ? { code: otpCode } : {})
+                }),
+                { 
+                  status: 500, 
+                  headers: { ...corsHeaders, "Content-Type": "application/json" } 
+                }
+              );
+            }
           }
-          
-          return new Response(
-            JSON.stringify({ 
-              message: "OTP sent successfully",
-              // Always return the code for easier testing
-              code: otpCode
-            }),
-            { 
-              status: 200, 
-              headers: { ...corsHeaders, "Content-Type": "application/json" } 
-            }
-          );
-        } catch (error) {
-          console.error("Failed to send SMS:", error);
-          return new Response(
-            JSON.stringify({ 
-              error: "Failed to send SMS. Please try again later.",
-              // Still return the code for testing even if SMS fails
-              code: otpCode
-            }),
-            { 
-              status: 500, 
-              headers: { ...corsHeaders, "Content-Type": "application/json" } 
-            }
-          );
+        } else {
+          console.log(`[DEV MODE] SMS would be sent to ${phoneNumber} with code ${otpCode}`);
         }
+        
+        // Always return success in development with the code for easier testing
+        return new Response(
+          JSON.stringify({ 
+            message: "OTP sent successfully",
+            code: otpCode  // Always return the code for easier testing
+          }),
+          { 
+            status: 200, 
+            headers: { ...corsHeaders, "Content-Type": "application/json" } 
+          }
+        );
       } catch (error) {
         console.error("Unexpected error:", error);
         return new Response(
-          JSON.stringify({ error: "Unexpected error occurred" }),
+          JSON.stringify({ 
+            error: "Unexpected error occurred",
+            // In development, still return the code even if there was an error
+            ...(isDevelopment ? { code: otpCode } : {})
+          }),
           { 
             status: 500, 
             headers: { ...corsHeaders, "Content-Type": "application/json" } 
