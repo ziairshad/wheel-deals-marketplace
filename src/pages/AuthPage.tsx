@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { Car } from "lucide-react";
@@ -7,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client"; 
+import { toast } from "sonner";
 import { 
   Form, 
   FormControl, 
@@ -86,29 +86,20 @@ const AuthPage = () => {
     try {
       setIsLoading(true);
       
-      // Check if the email already exists
-      const { data: existingUsers, error: emailCheckError } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: 'check_only_not_actual_login',
-      });
+      // First, check if email already exists by querying profiles
+      const { data: emailProfiles, count: emailCount, error: emailError } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('email', values.email);
       
-      // If we didn't get an auth error about invalid credentials, the user likely exists
-      if (!emailCheckError || emailCheckError.message.toLowerCase().includes("invalid login credentials")) {
-        // If there's no error or we're getting invalid login (which means email exists but password wrong)
-        const { count, error: countError } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true })
-          .eq('email', values.email);
-        
-        if ((count && count > 0) || (!emailCheckError)) {
-          toast.error("Email already in use. Please use a different email address.");
-          setIsLoading(false);
-          return;
-        }
+      if (emailCount && emailCount > 0) {
+        toast.error("Email already in use. Please use a different email address.");
+        setIsLoading(false);
+        return;
       }
       
       // Check if phone number already exists
-      const { count: phoneCount, error: phoneError } = await supabase
+      const { data: phoneProfiles, count: phoneCount, error: phoneError } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
         .eq('phone_number', values.phoneNumber);
