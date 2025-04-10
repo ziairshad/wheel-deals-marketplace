@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { Car } from "lucide-react";
@@ -87,33 +86,41 @@ const AuthPage = () => {
     try {
       setIsLoading(true);
       
-      // Check if email exists - completely different approach to avoid type issues
-      const { count: emailCount, error: emailError } = await supabase
+      // Check if email exists - using a simpler approach without count
+      const { data: emailData, error: emailError } = await supabase
         .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('email', values.email);
+        .select('id')
+        .eq('email', values.email)
+        .limit(1);
       
       if (emailError) {
         console.error("Email check error:", emailError);
+        toast.error("Error checking email availability");
+        setIsLoading(false);
+        return;
       }
       
-      if (emailCount && emailCount > 0) {
+      if (emailData && emailData.length > 0) {
         toast.error("Email already in use. Please use a different email address.");
         setIsLoading(false);
         return;
       }
       
-      // Check if phone number exists - completely different approach to avoid type issues
-      const { count: phoneCount, error: phoneError } = await supabase
+      // Check if phone number exists - using a simpler approach without count
+      const { data: phoneData, error: phoneError } = await supabase
         .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('phone_number', values.phoneNumber);
+        .select('id')
+        .eq('phone_number', values.phoneNumber)
+        .limit(1);
       
       if (phoneError) {
         console.error("Phone check error:", phoneError);
+        toast.error("Error checking phone availability");
+        setIsLoading(false);
+        return;
       }
       
-      if (phoneCount && phoneCount > 0) {
+      if (phoneData && phoneData.length > 0) {
         toast.error("Phone number already in use. Please use a different phone number.");
         setIsLoading(false);
         return;
