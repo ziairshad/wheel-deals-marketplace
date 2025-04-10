@@ -119,6 +119,24 @@ serve(async (req) => {
       expiresAt.setMinutes(expiresAt.getMinutes() + 5);
 
       try {
+        // First check if the profile exists for the user
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", userId)
+          .single();
+          
+        if (profileError) {
+          console.error("Error finding profile:", profileError);
+          return new Response(
+            JSON.stringify({ error: `User profile not found. Please complete registration first.` }),
+            { 
+              status: 404, 
+              headers: { ...corsHeaders, "Content-Type": "application/json" } 
+            }
+          );
+        }
+
         // Store the OTP in the database using service role to bypass RLS
         const { data, error } = await supabase
           .from("otp_codes")
@@ -141,13 +159,14 @@ serve(async (req) => {
           );
         }
 
-        // Send OTP via Twilio SMS for production use
+        // Send OTP via Twilio SMS
         try {
           const message = `Your Wheel Deals verification code is: ${otpCode}`;
-          // Send actual SMS now
-          await sendTwilioSMS(phoneNumber, message);
+          // Send actual SMS
+          const twilioResponse = await sendTwilioSMS(phoneNumber, message);
           
           console.log(`SMS sent to ${phoneNumber} with code ${otpCode}`);
+          console.log("Twilio response:", twilioResponse);
           
           return new Response(
             JSON.stringify({ 
