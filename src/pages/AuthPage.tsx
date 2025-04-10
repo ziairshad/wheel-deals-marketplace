@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { Car } from "lucide-react";
@@ -86,41 +87,41 @@ const AuthPage = () => {
     try {
       setIsLoading(true);
       
-      // Check if email exists - using a simpler approach without count
-      const { data: emailData, error: emailError } = await supabase
+      // Check if email exists - using a query that avoids TypeScript complexity
+      const emailCheckQuery = await supabase
         .from('profiles')
         .select('id')
         .eq('email', values.email)
-        .limit(1);
+        .maybeSingle();
       
-      if (emailError) {
-        console.error("Email check error:", emailError);
+      if (emailCheckQuery.error) {
+        console.error("Email check error:", emailCheckQuery.error);
         toast.error("Error checking email availability");
         setIsLoading(false);
         return;
       }
       
-      if (emailData && emailData.length > 0) {
+      if (emailCheckQuery.data) {
         toast.error("Email already in use. Please use a different email address.");
         setIsLoading(false);
         return;
       }
       
-      // Check if phone number exists - using a simpler approach without count
-      const { data: phoneData, error: phoneError } = await supabase
+      // Check if phone number exists - using a query that avoids TypeScript complexity
+      const phoneCheckQuery = await supabase
         .from('profiles')
         .select('id')
         .eq('phone_number', values.phoneNumber)
-        .limit(1);
+        .maybeSingle();
       
-      if (phoneError) {
-        console.error("Phone check error:", phoneError);
+      if (phoneCheckQuery.error) {
+        console.error("Phone check error:", phoneCheckQuery.error);
         toast.error("Error checking phone availability");
         setIsLoading(false);
         return;
       }
       
-      if (phoneData && phoneData.length > 0) {
+      if (phoneCheckQuery.data) {
         toast.error("Phone number already in use. Please use a different phone number.");
         setIsLoading(false);
         return;
