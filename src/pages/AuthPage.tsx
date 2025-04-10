@@ -86,27 +86,25 @@ const AuthPage = () => {
     try {
       setIsLoading(true);
       
-      // Check if email already exists - simplify query to avoid TypeScript depth issues
-      const { data: emailData, error: emailError } = await supabase
+      // Check if email exists - simplified approach to avoid type depth issues
+      const emailQuery = await supabase
         .from('profiles')
         .select('id')
-        .eq('email', values.email)
-        .single();
+        .eq('email', values.email);
       
-      if (!emailError && emailData) {
+      if (emailQuery.data && emailQuery.data.length > 0) {
         toast.error("Email already in use. Please use a different email address.");
         setIsLoading(false);
         return;
       }
       
-      // Check if phone number already exists - simplify query to avoid TypeScript depth issues
-      const { data: phoneData, error: phoneError } = await supabase
+      // Check if phone number exists - simplified approach to avoid type depth issues
+      const phoneQuery = await supabase
         .from('profiles')
         .select('id')
-        .eq('phone_number', values.phoneNumber)
-        .single();
+        .eq('phone_number', values.phoneNumber);
       
-      if (!phoneError && phoneData) {
+      if (phoneQuery.data && phoneQuery.data.length > 0) {
         toast.error("Phone number already in use. Please use a different phone number.");
         setIsLoading(false);
         return;
