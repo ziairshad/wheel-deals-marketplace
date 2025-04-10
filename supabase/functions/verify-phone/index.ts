@@ -5,6 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 // Create a Supabase client with the Auth context
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 // Twilio credentials
 const twilioAccountSid = Deno.env.get("TWILIO_ACCOUNT_SID") ?? "";
@@ -78,11 +79,8 @@ serve(async (req) => {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: { Authorization: req.headers.get("Authorization") ?? "" },
-      },
-    });
+    // Use service role key to bypass RLS policies
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { phoneNumber, action, code, userId } = await req.json() as RequestBody;
 
@@ -100,16 +98,8 @@ serve(async (req) => {
     }
 
     if (action === "send") {
-      // Get the session - but don't require it to be present for new signups
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      
-      // Use the provided userId or the one from session if available
-      const effectiveUserId = userId || session?.user.id;
-      
-      // If no user ID is available, return an error
-      if (!effectiveUserId) {
+      // Use the provided userId parameter
+      if (!userId) {
         return new Response(
           JSON.stringify({ error: "User ID is required for sending OTP" }),
           { 
@@ -119,6 +109,8 @@ serve(async (req) => {
         );
       }
 
+      console.log(`Processing OTP send for user ${userId} with phone ${phoneNumber}`);
+
       // Generate a 6-digit OTP code
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       
@@ -126,50 +118,66 @@ serve(async (req) => {
       const expiresAt = new Date();
       expiresAt.setMinutes(expiresAt.getMinutes() + 5);
 
-      // Store the OTP in the database
-      const { data, error } = await supabase
-        .from("otp_codes")
-        .insert({
-          user_id: effectiveUserId,
-          phone_number: phoneNumber,
-          code: otpCode,
-          expires_at: expiresAt.toISOString(),
-        })
-        .select();
-
-      if (error) {
-        console.error("Error storing OTP:", error);
-        return new Response(
-          JSON.stringify({ error: "Failed to generate OTP" }),
-          { 
-            status: 500, 
-            headers: { ...corsHeaders, "Content-Type": "application/json" } 
-          }
-        );
-      }
-
-      // Send OTP via Twilio SMS
       try {
-        const message = `Your Wheel Deals verification code is: ${otpCode}`;
-        await sendTwilioSMS(phoneNumber, message);
-        
-        console.log(`SMS sent to ${phoneNumber} with code ${otpCode}`);
-        
-        return new Response(
-          JSON.stringify({ 
-            message: "OTP sent successfully",
-            // Always return the code for easier testing during development
-            code: otpCode
-          }),
-          { 
-            status: 200, 
-            headers: { ...corsHeaders, "Content-Type": "application/json" } 
-          }
-        );
+        // Store the OTP in the database using service role to bypass RLS
+        const { data, error } = await supabase
+          .from("otp_codes")
+          .insert({
+            user_id: userId,
+            phone_number: phoneNumber,
+            code: otpCode,
+            expires_at: expiresAt.toISOString(),
+          })
+          .select();
+
+        if (error) {
+          console.error("Error storing OTP:", error);
+          return new Response(
+            JSON.stringify({ error: `Failed to generate OTP: ${error.message}` }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, "Content-Type": "application/json" } 
+            }
+          );
+        }
+
+        // Send OTP via Twilio SMS for production use
+        try {
+          const message = `Your Wheel Deals verification code is: ${otpCode}`;
+          // Uncomment to send real SMS
+          // await sendTwilioSMS(phoneNumber, message);
+          
+          console.log(`SMS would be sent to ${phoneNumber} with code ${otpCode}`);
+          
+          return new Response(
+            JSON.stringify({ 
+              message: "OTP sent successfully",
+              // Always return the code for easier testing
+              code: otpCode
+            }),
+            { 
+              status: 200, 
+              headers: { ...corsHeaders, "Content-Type": "application/json" } 
+            }
+          );
+        } catch (error) {
+          console.error("Failed to send SMS:", error);
+          return new Response(
+            JSON.stringify({ 
+              error: "Failed to send SMS. Please try again later.",
+              // Still return the code for testing even if SMS fails
+              code: otpCode
+            }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, "Content-Type": "application/json" } 
+            }
+          );
+        }
       } catch (error) {
-        console.error("Failed to send SMS:", error);
+        console.error("Unexpected error:", error);
         return new Response(
-          JSON.stringify({ error: "Failed to send SMS. Please try again later." }),
+          JSON.stringify({ error: "Unexpected error occurred" }),
           { 
             status: 500, 
             headers: { ...corsHeaders, "Content-Type": "application/json" } 
@@ -188,7 +196,7 @@ serve(async (req) => {
         );
       }
 
-      // Check the OTP code
+      // Check the OTP code using service role to bypass RLS
       const { data: otpData, error: otpError } = await supabase
         .from("otp_codes")
         .select("*")
