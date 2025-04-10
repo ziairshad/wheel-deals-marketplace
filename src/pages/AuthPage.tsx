@@ -86,10 +86,10 @@ const AuthPage = () => {
     try {
       setIsLoading(true);
       
-      // Simple approach to check for duplicate email
-      const { count: emailCount, error: emailError } = await supabase
+      // Check for duplicate email - using a simple approach without count parameter
+      const { data: emailData, error: emailError } = await supabase
         .from('profiles')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .eq('email', values.email);
       
       if (emailError) {
@@ -99,16 +99,16 @@ const AuthPage = () => {
         return;
       }
       
-      if (emailCount && emailCount > 0) {
+      if (emailData && emailData.length > 0) {
         toast.error("Email already in use. Please use a different email address.");
         setIsLoading(false);
         return;
       }
       
-      // Simple approach to check for duplicate phone number
-      const { count: phoneCount, error: phoneError } = await supabase
+      // Check for duplicate phone number - using a simple approach without count parameter
+      const { data: phoneData, error: phoneError } = await supabase
         .from('profiles')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .eq('phone_number', values.phoneNumber);
       
       if (phoneError) {
@@ -118,7 +118,7 @@ const AuthPage = () => {
         return;
       }
       
-      if (phoneCount && phoneCount > 0) {
+      if (phoneData && phoneData.length > 0) {
         toast.error("Phone number already in use. Please use a different phone number.");
         setIsLoading(false);
         return;
