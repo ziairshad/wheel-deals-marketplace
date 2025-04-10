@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { Car } from "lucide-react";
@@ -87,41 +86,39 @@ const AuthPage = () => {
     try {
       setIsLoading(true);
       
-      // Check if email exists - using a query that avoids TypeScript complexity
-      const emailCheckQuery = await supabase
+      // Check if email exists - using a different approach to avoid TypeScript complexity
+      const { data: emailData, error: emailError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('email', values.email)
-        .maybeSingle();
+        .eq('email', values.email);
       
-      if (emailCheckQuery.error) {
-        console.error("Email check error:", emailCheckQuery.error);
+      if (emailError) {
+        console.error("Email check error:", emailError);
         toast.error("Error checking email availability");
         setIsLoading(false);
         return;
       }
       
-      if (emailCheckQuery.data) {
+      if (emailData && emailData.length > 0) {
         toast.error("Email already in use. Please use a different email address.");
         setIsLoading(false);
         return;
       }
       
-      // Check if phone number exists - using a query that avoids TypeScript complexity
-      const phoneCheckQuery = await supabase
+      // Check if phone number exists - using a different approach to avoid TypeScript complexity
+      const { data: phoneData, error: phoneError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('phone_number', values.phoneNumber)
-        .maybeSingle();
+        .eq('phone_number', values.phoneNumber);
       
-      if (phoneCheckQuery.error) {
-        console.error("Phone check error:", phoneCheckQuery.error);
+      if (phoneError) {
+        console.error("Phone check error:", phoneError);
         toast.error("Error checking phone availability");
         setIsLoading(false);
         return;
       }
       
-      if (phoneCheckQuery.data) {
+      if (phoneData && phoneData.length > 0) {
         toast.error("Phone number already in use. Please use a different phone number.");
         setIsLoading(false);
         return;
