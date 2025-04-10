@@ -124,17 +124,31 @@ serve(async (req) => {
           .from("profiles")
           .select("id")
           .eq("id", userId)
-          .single();
+          .maybeSingle();
           
-        if (profileError) {
-          console.error("Error finding profile:", profileError);
-          return new Response(
-            JSON.stringify({ error: `User profile not found. Please complete registration first.` }),
-            { 
-              status: 404, 
-              headers: { ...corsHeaders, "Content-Type": "application/json" } 
-            }
-          );
+        // If profile doesn't exist, create it
+        if (!profileData) {
+          console.log(`Profile not found for user ${userId}, creating it now`);
+          const { error: createProfileError } = await supabase
+            .from("profiles")
+            .insert({
+              id: userId,
+              phone_number: phoneNumber,
+              phone_verified: false
+            });
+            
+          if (createProfileError) {
+            console.error("Error creating profile:", createProfileError);
+            return new Response(
+              JSON.stringify({ error: `Failed to create user profile: ${createProfileError.message}` }),
+              { 
+                status: 500, 
+                headers: { ...corsHeaders, "Content-Type": "application/json" } 
+              }
+            );
+          }
+          
+          console.log(`Profile created successfully for user ${userId}`);
         }
 
         // Store the OTP in the database using service role to bypass RLS
