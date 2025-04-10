@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { Car, ArrowLeft } from "lucide-react";
@@ -112,13 +111,20 @@ const AuthPage = () => {
     try {
       setIsLoading(true);
       const newUserId = await signUp(values.email, values.password, values.fullName, values.phoneNumber);
+      
       if (newUserId) {
         setUserId(newUserId);
         setPhoneNumber(values.phoneNumber);
         setShowPhoneVerification(true);
         
-        // Send verification code
-        await sendPhoneVerification(values.phoneNumber);
+        // Send verification code with the new user ID
+        try {
+          await sendPhoneVerification(values.phoneNumber, newUserId);
+          toast.success("Verification code sent to your phone");
+        } catch (error) {
+          console.error("Failed to send verification code:", error);
+          toast.error("Failed to send verification code. Please try again.");
+        }
       }
     } catch (error) {
       console.error("Signup error:", error);
@@ -128,16 +134,18 @@ const AuthPage = () => {
   };
   
   const handleSendVerificationCode = async () => {
-    if (!phoneNumber) {
-      toast.error("Please enter a phone number");
+    if (!phoneNumber || !userId) {
+      toast.error("Missing user information. Please try again.");
       return;
     }
     
     try {
       setIsLoading(true);
-      await sendPhoneVerification(phoneNumber);
+      await sendPhoneVerification(phoneNumber, userId);
+      toast.success("Verification code sent to your phone");
     } catch (error) {
       console.error("Failed to send verification code:", error);
+      toast.error("Failed to send verification code. Please try again.");
     } finally {
       setIsLoading(false);
     }

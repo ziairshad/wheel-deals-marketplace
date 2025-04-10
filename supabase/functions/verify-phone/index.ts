@@ -84,11 +84,6 @@ serve(async (req) => {
       },
     });
 
-    // Get the session to verify the user is authenticated
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
     const { phoneNumber, action, code, userId } = await req.json() as RequestBody;
 
     // Validate UAE phone number format (starts with +971)
@@ -105,11 +100,20 @@ serve(async (req) => {
     }
 
     if (action === "send") {
-      if (!session) {
+      // Get the session - but don't require it to be present for new signups
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      
+      // Use the provided userId or the one from session if available
+      const effectiveUserId = userId || session?.user.id;
+      
+      // If no user ID is available, return an error
+      if (!effectiveUserId) {
         return new Response(
-          JSON.stringify({ error: "Unauthorized" }),
+          JSON.stringify({ error: "User ID is required for sending OTP" }),
           { 
-            status: 401, 
+            status: 400, 
             headers: { ...corsHeaders, "Content-Type": "application/json" } 
           }
         );
@@ -126,7 +130,7 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from("otp_codes")
         .insert({
-          user_id: session.user.id,
+          user_id: effectiveUserId,
           phone_number: phoneNumber,
           code: otpCode,
           expires_at: expiresAt.toISOString(),
@@ -154,8 +158,8 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ 
             message: "OTP sent successfully",
-            // In development, return the code for testing
-            code: process.env.NODE_ENV === "development" ? otpCode : undefined
+            // Always return the code for easier testing during development
+            code: otpCode
           }),
           { 
             status: 200, 

@@ -23,7 +23,7 @@ type AuthContextType = {
   signUp: (email: string, password: string, fullName: string, phoneNumber: string) => Promise<string | undefined>;
   signOut: () => Promise<void>;
   loading: boolean;
-  sendPhoneVerification: (phoneNumber: string) => Promise<string | undefined>;
+  sendPhoneVerification: (phoneNumber: string, userId?: string) => Promise<string | undefined>;
   verifyPhoneNumber: (phoneNumber: string, code: string, userId: string) => Promise<boolean>;
   loadingProfile: boolean;
 };
@@ -135,15 +135,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const sendPhoneVerification = async (phoneNumber: string) => {
+  const sendPhoneVerification = async (phoneNumber: string, userId?: string) => {
     try {
-      if (!user) {
-        throw new Error("You must be logged in to verify your phone number");
+      // If userId is not provided but user is logged in, use the logged-in user's ID
+      const effectiveUserId = userId || user?.id;
+      
+      if (!effectiveUserId) {
+        throw new Error("User ID is required to verify phone number");
       }
 
       const response = await supabase.functions.invoke("verify-phone", {
         body: { 
           phoneNumber, 
+          userId: effectiveUserId,
           action: "send" 
         },
       });
