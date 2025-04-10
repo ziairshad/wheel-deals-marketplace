@@ -144,10 +144,10 @@ serve(async (req) => {
         // Send OTP via Twilio SMS for production use
         try {
           const message = `Your Wheel Deals verification code is: ${otpCode}`;
-          // Uncomment to send real SMS
-          // await sendTwilioSMS(phoneNumber, message);
+          // Send actual SMS now
+          await sendTwilioSMS(phoneNumber, message);
           
-          console.log(`SMS would be sent to ${phoneNumber} with code ${otpCode}`);
+          console.log(`SMS sent to ${phoneNumber} with code ${otpCode}`);
           
           return new Response(
             JSON.stringify({ 
