@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client"; 
 import { 
   Form, 
   FormControl, 
@@ -84,10 +85,46 @@ const AuthPage = () => {
   const onSignupSubmit = async (values: z.infer<typeof signupSchema>) => {
     try {
       setIsLoading(true);
+      
+      // Check if the email already exists
+      const { data: existingUsers, error: emailCheckError } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: 'check_only_not_actual_login',
+      });
+      
+      // If we didn't get an auth error about invalid credentials, the user likely exists
+      if (!emailCheckError || emailCheckError.message.toLowerCase().includes("invalid login credentials")) {
+        // If there's no error or we're getting invalid login (which means email exists but password wrong)
+        const { count, error: countError } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+          .eq('email', values.email);
+        
+        if ((count && count > 0) || (!emailCheckError)) {
+          toast.error("Email already in use. Please use a different email address.");
+          setIsLoading(false);
+          return;
+        }
+      }
+      
+      // Check if phone number already exists
+      const { count: phoneCount, error: phoneError } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('phone_number', values.phoneNumber);
+      
+      if (phoneCount && phoneCount > 0) {
+        toast.error("Phone number already in use. Please use a different phone number.");
+        setIsLoading(false);
+        return;
+      }
+      
+      // If all checks pass, proceed with signup
       await signUp(values.email, values.password, values.fullName, values.phoneNumber);
       setEmailSent(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Signup error:", error);
+      // Error is already shown in toast by the signUp function
     } finally {
       setIsLoading(false);
     }
