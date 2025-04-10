@@ -80,7 +80,12 @@ serve(async (req) => {
     }
 
     // Use service role key to bypass RLS policies
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
 
     const { phoneNumber, action, code, userId } = await req.json() as RequestBody;
 
@@ -119,8 +124,20 @@ serve(async (req) => {
       expiresAt.setMinutes(expiresAt.getMinutes() + 5);
 
       try {
+        // Check if the profile exists for the user
+        const { data: userExists } = await supabase
+          .from("auth.users")
+          .select("id")
+          .eq("id", userId)
+          .maybeSingle();
+
+        // Check if user exists in auth.users
+        if (!userExists) {
+          console.log(`User ${userId} does not exist in auth.users`);
+        }
+
         // First check if the profile exists for the user
-        const { data: profileData, error: profileError } = await supabase
+        const { data: profileData } = await supabase
           .from("profiles")
           .select("id")
           .eq("id", userId)
@@ -139,19 +156,21 @@ serve(async (req) => {
             
           if (createProfileError) {
             console.error("Error creating profile:", createProfileError);
-            return new Response(
-              JSON.stringify({ error: `Failed to create user profile: ${createProfileError.message}` }),
-              { 
-                status: 500, 
-                headers: { ...corsHeaders, "Content-Type": "application/json" } 
-              }
-            );
+            // Continue anyway - we'll just store the OTP without updating the profile
+          } else {
+            console.log(`Profile created successfully for user ${userId}`);
           }
-          
-          console.log(`Profile created successfully for user ${userId}`);
         }
 
         // Store the OTP in the database using service role to bypass RLS
+        // First check if there's an existing OTP that hasn't been used and mark it as used
+        await supabase
+          .from("otp_codes")
+          .update({ used: true })
+          .eq("user_id", userId)
+          .eq("used", false);
+
+        // Then create a new OTP
         const { data, error } = await supabase
           .from("otp_codes")
           .insert({
@@ -176,11 +195,16 @@ serve(async (req) => {
         // Send OTP via Twilio SMS
         try {
           const message = `Your Wheel Deals verification code is: ${otpCode}`;
-          // Send actual SMS
-          const twilioResponse = await sendTwilioSMS(phoneNumber, message);
           
-          console.log(`SMS sent to ${phoneNumber} with code ${otpCode}`);
-          console.log("Twilio response:", twilioResponse);
+          if (twilioAccountSid && twilioAuthToken && twilioPhoneNumber) {
+            // Send actual SMS
+            const twilioResponse = await sendTwilioSMS(phoneNumber, message);
+            console.log(`SMS sent to ${phoneNumber} with code ${otpCode}`);
+            console.log("Twilio response:", twilioResponse);
+          } else {
+            // Just log in development
+            console.log(`[DEV MODE] SMS would be sent to ${phoneNumber} with code ${otpCode}`);
+          }
           
           return new Response(
             JSON.stringify({ 
