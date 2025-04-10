@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { Car } from "lucide-react";
@@ -87,28 +86,27 @@ const AuthPage = () => {
     try {
       setIsLoading(true);
       
-      // First, check if email already exists by querying profiles
-      // Using simpler query syntax to avoid TypeScript depth issues
-      const emailCheckQuery = await supabase
+      // Check if email already exists - simplify query to avoid TypeScript depth issues
+      const { data: emailData, error: emailError } = await supabase
         .from('profiles')
         .select('id')
         .eq('email', values.email)
-        .limit(1);
+        .single();
       
-      if (emailCheckQuery.data && emailCheckQuery.data.length > 0) {
+      if (!emailError && emailData) {
         toast.error("Email already in use. Please use a different email address.");
         setIsLoading(false);
         return;
       }
       
-      // Check if phone number already exists using similar approach
-      const phoneCheckQuery = await supabase
+      // Check if phone number already exists - simplify query to avoid TypeScript depth issues
+      const { data: phoneData, error: phoneError } = await supabase
         .from('profiles')
         .select('id')
         .eq('phone_number', values.phoneNumber)
-        .limit(1);
+        .single();
       
-      if (phoneCheckQuery.data && phoneCheckQuery.data.length > 0) {
+      if (!phoneError && phoneData) {
         toast.error("Phone number already in use. Please use a different phone number.");
         setIsLoading(false);
         return;
