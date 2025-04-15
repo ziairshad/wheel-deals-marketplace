@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +27,35 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Custom error messages
+const AUTH_ERRORS = {
+  INVALID_CREDENTIALS: "Invalid email or password",
+  EMAIL_NOT_CONFIRMED: "Please verify your email address",
+  NETWORK_ERROR: "Network error. Please check your connection",
+  RATE_LIMIT: "Too many attempts. Please try again later",
+  DEFAULT: "An unexpected error occurred"
+};
+
+const getErrorMessage = (error: any): string => {
+  if (!error) return AUTH_ERRORS.DEFAULT;
+  
+  // Handle Supabase specific error messages
+  if (error.message?.includes("Invalid login credentials")) {
+    return AUTH_ERRORS.INVALID_CREDENTIALS;
+  }
+  if (error.message?.includes("Email not confirmed")) {
+    return AUTH_ERRORS.EMAIL_NOT_CONFIRMED;
+  }
+  if (error.message?.includes("rate limit")) {
+    return AUTH_ERRORS.RATE_LIMIT;
+  }
+  if (error.message?.includes("network")) {
+    return AUTH_ERRORS.NETWORK_ERROR;
+  }
+  
+  return error.message || AUTH_ERRORS.DEFAULT;
+};
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -47,20 +75,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) {
         console.error('Error fetching profile:', error);
+        toast.error("Failed to load user profile");
       } else {
         setProfile(data);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      toast.error("Failed to load user profile");
     } finally {
       setLoadingProfile(false);
     }
   };
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up the auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        if (!mounted) return;
+
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -68,29 +102,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           toast.success("Signed in successfully!");
           // Fetch profile when user signs in
           if (session?.user) {
-            fetchProfile(session.user.id);
+            await fetchProfile(session.user.id);
           }
         } else if (event === 'SIGNED_OUT') {
           toast.info("Signed out successfully!");
           setProfile(null);
+        } else if (event === 'TOKEN_REFRESHED') {
+          toast.success("Session refreshed");
+        } else if (event === 'USER_UPDATED') {
+          if (session?.user) {
+            await fetchProfile(session.user.id);
+          }
         }
       }
     );
 
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      // Fetch profile if session exists
-      if (session?.user) {
-        fetchProfile(session.user.id);
+    // Check for existing session
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        toast.error("Failed to initialize authentication");
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
-      
-      setLoading(false);
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -103,7 +158,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
       navigate("/");
     } catch (error: any) {
-      toast.error(error.message || "Failed to sign in.");
+      const message = getErrorMessage(error);
+      toast.error(message);
       throw error;
     }
   };
@@ -126,7 +182,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       toast.success("Account created! Please check your email to verify your account.");
     } catch (error: any) {
-      toast.error(error.message || "Failed to sign up.");
+      const message = getErrorMessage(error);
+      toast.error(message);
       throw error;
     }
   };
@@ -137,22 +194,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
       navigate("/");
     } catch (error: any) {
-      toast.error(error.message || "Failed to sign out.");
+      const message = getErrorMessage(error);
+      toast.error(message);
       throw error;
     }
   };
 
+  const value = {
+    session,
+    user,
+    profile,
+    signIn,
+    signUp,
+    signOut,
+    loading,
+    loadingProfile
+  };
+
   return (
-    <AuthContext.Provider value={{ 
-      session, 
-      user, 
-      profile,
-      signIn, 
-      signUp, 
-      signOut, 
-      loading,
-      loadingProfile
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

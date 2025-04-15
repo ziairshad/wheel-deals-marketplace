@@ -19,6 +19,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { CarListingRow, supabase } from "@/integrations/supabase/client";
 import { UnifiedCar, filterCars, initialFilterOptions, sortOptions, FilterOptions } from "@/utils/filter-utils";
 import { placeholderCars } from "@/utils/placeholder-cars";
+import { sortOptionsToDatabase } from "@/utils/sort-utils";
+
+const ITEMS_PER_PAGE = 12;
 
 const HomePage = () => {
   const [filteredCars, setFilteredCars] = useState<UnifiedCar[]>([]);
@@ -26,11 +29,12 @@ const HomePage = () => {
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterOptions>(initialFilterOptions);
   const [selectedSort, setSelectedSort] = useState(sortOptions[0]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  
   const [searchParams] = useSearchParams();
   
   const toggleFilters = () => {
@@ -52,67 +56,79 @@ const HomePage = () => {
         setLoading(true);
         setError(null);
         
-        // Fetch car listings from Supabase
+        // Calculate pagination range
+        const from = (currentPage - 1) * ITEMS_PER_PAGE;
+        const to = from + ITEMS_PER_PAGE - 1;
+        
+        // First get total count
+        const { count: totalItems, error: countError } = await supabase
+          .from('car_listings')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'available')
+          .match(filters);
+          
+        if (countError) {
+          throw new Error(`Failed to get total count: ${countError.message}`);
+        }
+        
+        // Convert sort option to database format
+        const dbSort = sortOptionsToDatabase(selectedSort);
+        
+        // Then fetch paginated data
         const { data: carListings, error: fetchError } = await supabase
           .from('car_listings')
           .select('*')
-          .eq('status', 'available');
+          .eq('status', 'available')
+          .match(filters)
+          .order(dbSort.column, { ascending: dbSort.ascending })
+          .range(from, to);
         
         if (fetchError) {
-          console.error("Error fetching car listings:", fetchError);
-          throw new Error('Failed to fetch car listings');
+          throw new Error(`Failed to fetch car listings: ${fetchError.message}`);
         }
         
-        // Use real data from Supabase
-        let allCars: UnifiedCar[] = [];
-        if (!carListings || carListings.length === 0) {
-          // No cars available
-          console.log("No car listings found");
-          toast({
-            title: "No listings found",
-            description: "There are currently no car listings available",
-            duration: 3000,
-          });
-        } else {
-          // Use TypeScript casting to ensure type safety
-          allCars = carListings as CarListingRow[];
+        if (!carListings) {
+          setFilteredCars([]);
+          setTotalCount(0);
+          return;
         }
         
-        // Apply filtering
-        const filtered = filterCars(allCars, filters);
+        setTotalCount(totalItems || 0);
+        setFilteredCars(carListings as CarListingRow[]);
         
-        // Apply sorting
-        const sorted = [...filtered].sort(selectedSort.sortFn);
-        
-        setFilteredCars(sorted);
-        setLoading(false);
       } catch (error) {
         console.error("Error in fetchData:", error);
-        setError("Failed to load cars. Please try again later.");
-        setLoading(false);
+        setError(error instanceof Error ? error.message : "An unexpected error occurred");
         setFilteredCars([]);
+        setTotalCount(0);
         
         toast({
           title: "Error loading data",
-          description: "Could not retrieve car listings",
+          description: error instanceof Error ? error.message : "Could not retrieve car listings",
           variant: "destructive",
         });
+      } finally {
+        setLoading(false);
       }
     };
     
     fetchData();
-  }, [filters, selectedSort, toast]);
+  }, [filters, selectedSort, currentPage, toast]);
 
   const handleFilterChange = (newFilters: FilterOptions) => {
     setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
   };
 
   const handleSortChange = (sortId: string) => {
     const newSortOption = sortOptions.find(option => option.id === sortId);
     if (newSortOption) {
       setSelectedSort(newSortOption);
+      setCurrentPage(1); // Reset to first page when sort changes
     }
   };
+
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -154,7 +170,7 @@ const HomePage = () => {
         <section>
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
+              {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
                 <div key={i} className="space-y-3">
                   <Skeleton className="aspect-video rounded-md" />
                   <div className="space-y-2">
@@ -167,15 +183,19 @@ const HomePage = () => {
           ) : error ? (
             <div className="text-center py-12">
               <Car className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-              <h3 className="text-lg font-medium mb-2">Failed to load cars</h3>
-              <p className="text-muted-foreground">{error}</p>
+              <h3 className="text-lg font-medium mb-2">Error loading cars</h3>
+              <p className="text-muted-foreground mb-4">{error}</p>
               <Button onClick={() => window.location.reload()}>Retry</Button>
             </div>
           ) : (
             <>
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                 <p className="text-muted-foreground mb-4 md:mb-0">
-                  Showing <span className="font-medium text-foreground">{filteredCars.length}</span> cars
+                  Showing <span className="font-medium text-foreground">
+                    {filteredCars.length}
+                  </span> of <span className="font-medium text-foreground">
+                    {totalCount}
+                  </span> cars
                 </p>
                 
                 <div className="flex items-center gap-2">
@@ -204,15 +224,50 @@ const HomePage = () => {
                   <Car className="h-12 w-12 text-gray-400 mx-auto mb-3" />
                   <h3 className="text-lg font-medium mb-2">No cars found</h3>
                   <p className="text-muted-foreground">
-                    No cars match your current filter criteria.
+                    Try adjusting your filters to see more results.
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredCars.map((car) => (
-                    <CarCard key={car.id} car={car} />
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredCars.map((car) => (
+                      <CarCard key={car.id} car={car} />
+                    ))}
+                  </div>
+                  
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex justify-center mt-8">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                        >
+                          Previous
+                        </Button>
+                        <div className="flex items-center gap-2">
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            <Button
+                              key={page}
+                              variant={currentPage === page ? "default" : "outline"}
+                              onClick={() => setCurrentPage(page)}
+                            >
+                              {page}
+                            </Button>
+                          ))}
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
